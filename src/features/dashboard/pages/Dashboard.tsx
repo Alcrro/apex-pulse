@@ -17,7 +17,7 @@ export function DashboardPage() {
   const { sessions } = useSessions()
   const navigate = useNavigate()
 
-  const { canInstall, install } = useInstallPWA()
+  const { canInstall, isIOS, install } = useInstallPWA()
   const name = (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? 'Sportiv'
   const lastSession = sessions.find(s => s.finished_at)
 
@@ -44,6 +44,19 @@ export function DashboardPage() {
             <p className="text-xs text-gray-400">Acces rapid de pe ecranul principal</p>
           </div>
         </button>
+      )}
+
+      {isIOS && (
+        <div className="flex items-start gap-3 bg-orange-500/10 border border-orange-500/30 rounded-2xl px-4 py-3">
+          <Download className="text-orange-500 shrink-0 mt-0.5" size={20} />
+          <div>
+            <p className="text-sm font-semibold text-white">Instalează aplicația</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Apasă <span className="text-white font-medium">Share</span> (
+              <span className="text-white">⎙</span>) din Safari → <span className="text-white font-medium">Add to Home Screen</span>
+            </p>
+          </div>
+        </div>
       )}
 
       <StatsGrid
