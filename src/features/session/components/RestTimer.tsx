@@ -39,7 +39,7 @@ export function RestTimer({ seconds, onClose }: RestTimerProps) {
             <circle
               cx="60" cy="60" r="54"
               fill="none"
-              stroke="#f97316"
+              stroke="#FF5C00"
               strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={`${2 * Math.PI * 54}`}
