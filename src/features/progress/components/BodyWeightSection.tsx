@@ -89,7 +89,7 @@ export function BodyWeightSection() {
                 <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#6b7280' }} />
                 <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} domain={['auto', 'auto']} />
                 <Tooltip content={<ChartTooltip />} />
-                <Line type="monotone" dataKey="Greutate (kg)" stroke="#f97316" strokeWidth={2} dot={{ fill: '#f97316', r: 3 }} />
+                <Line type="monotone" dataKey="Greutate (kg)" stroke="#FF5C00" strokeWidth={2} dot={{ fill: '#FF5C00', r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </>

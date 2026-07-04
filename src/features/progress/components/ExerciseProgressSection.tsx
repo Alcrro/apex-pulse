@@ -69,15 +69,15 @@ export function ExerciseProgressSection() {
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="ormGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#FF5C00" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#FF5C00" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
                   <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#6b7280' }} />
                   <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} />
                   <Tooltip content={<ChartTooltip />} />
-                  <Area type="monotone" dataKey="1RM estimat" stroke="#f97316" fill="url(#ormGrad)" strokeWidth={2} dot={{ fill: '#f97316', r: 3 }} />
+                  <Area type="monotone" dataKey="1RM estimat" stroke="#FF5C00" fill="url(#ormGrad)" strokeWidth={2} dot={{ fill: '#FF5C00', r: 3 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
