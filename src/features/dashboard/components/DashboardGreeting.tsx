@@ -4,9 +4,9 @@ interface DashboardGreetingProps {
 
 export function DashboardGreeting({ name }: DashboardGreetingProps) {
   return (
-    <div>
-      <p className="text-gray-400 text-sm">Bună ziua,</p>
-      <h2 className="text-2xl font-black text-white">{name} 👋</h2>
+    <div className="pt-1">
+      <p className="text-forge-muted text-xs tracking-widest uppercase">Bună ziua</p>
+      <h2 className="text-2xl font-black text-forge-text tracking-tight mt-0.5">{name}</h2>
     </div>
   )
 }

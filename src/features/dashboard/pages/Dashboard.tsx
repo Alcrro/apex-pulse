@@ -7,7 +7,7 @@ import { DashboardGreeting } from '../components/DashboardGreeting'
 import { StatsGrid } from '../components/StatsGrid'
 import { WorkoutQuickStart } from '../components/WorkoutQuickStart'
 import { LastSessionCard } from '../components/LastSessionCard'
-import { ProgressBanner } from '../components/ProgressBanner'
+import { WeeklyRhythmStrip } from '../components/WeeklyRhythmStrip'
 
 export function DashboardPage() {
   const { user } = useAuth()
@@ -18,8 +18,16 @@ export function DashboardPage() {
   const name = (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? 'Sportiv'
   const lastSession = sessions.find(s => s.finished_at)
 
+  // sessions are ordered desc by started_at — first occurrence per workout is most recent
+  const lastSessionByWorkout: Record<string, string> = {}
+  for (const s of sessions) {
+    if (s.finished_at && s.workout_plan_id && !lastSessionByWorkout[s.workout_plan_id]) {
+      lastSessionByWorkout[s.workout_plan_id] = s.started_at
+    }
+  }
+
   return (
-    <div className="space-y-6 pt-2">
+    <div className="space-y-6 pt-2 pb-4">
       <DashboardGreeting name={name} />
 
       <StatsGrid
@@ -30,6 +38,7 @@ export function DashboardPage() {
 
       <WorkoutQuickStart
         workouts={workouts}
+        lastSessionByWorkout={lastSessionByWorkout}
         onStart={id => navigate(`/sesiune/${id}`)}
         onViewAll={() => navigate('/antrenamente')}
         onCreatePlan={() => navigate('/antrenamente')}
@@ -37,7 +46,7 @@ export function DashboardPage() {
 
       {lastSession && <LastSessionCard session={lastSession} />}
 
-      <ProgressBanner onClick={() => navigate('/progres')} />
+      <WeeklyRhythmStrip sessions={sessions} />
     </div>
   )
 }
