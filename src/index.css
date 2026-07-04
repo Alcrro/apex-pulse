@@ -2,13 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-surface:        #000000;
+  --color-card:           #1a1f2e;
+  --color-navbar:         #0f1117;
+  --color-modal:          #1e2433;
+  --color-content:        #ffffff;
+  --color-muted:          #9ca3af;
+  --color-primary:        #FF5C00;
+  --color-primary-hover:  #e05200;
+}
+
 @layer base {
   html {
     color-scheme: dark;
   }
 
   body {
-    @apply bg-gray-950 text-gray-100 antialiased;
+    background-color: var(--color-surface);
+    color: var(--color-content);
+    @apply antialiased;
   }
 
   * {
@@ -24,4 +37,9 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+}
+
+@keyframes waveMove {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }

@@ -65,3 +65,61 @@ export interface BodyWeight {
   recorded_at: string
   created_at: string
 }
+
+// ─── Nutriție ────────────────────────────────────────────────────────────────
+
+export type MealType = string
+export type GoalType = 'mentinere' | 'deficit_usor' | 'deficit_moderat' | 'surplus'
+export type NutritionPhase = 'discovery' | 'active'
+
+export interface FoodItem {
+  fdcId: string
+  name: string
+  nameRo?: string
+  brand?: string
+  imageUrl?: string
+  caloriesPerG: number
+  proteinG: number
+  carbsG: number
+  fatG: number
+  sugarG?: number
+  fiberG?: number
+  sodiumMg?: number
+}
+
+export interface MealEntry {
+  id: string
+  fdcId: string
+  mealType: MealType
+  quantity: number
+  unit: string
+  gramsEquivalent: number
+  calories: number
+  proteinG: number
+  carbsG: number
+  fatG: number
+  addedAt: string
+  food?: Pick<FoodItem, 'name' | 'nameRo' | 'imageUrl'>
+}
+
+export interface NutritionLog {
+  id: string
+  logDate: string
+  totalCalories: number
+  totalProteinG: number
+  totalCarbsG: number
+  totalFatG: number
+  waterMl: number
+  waterTargetMl: number
+  entries: MealEntry[]
+}
+
+export interface NutritionGoals {
+  goalType: GoalType | null
+  tdeeEstimated?: number
+  targetCalories?: number
+  isManualOverride: boolean
+  targetProteinPct: number
+  targetCarbsPct: number
+  targetFatPct: number
+}

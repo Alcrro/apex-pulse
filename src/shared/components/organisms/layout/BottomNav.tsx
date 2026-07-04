@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Dumbbell, ClipboardList, TrendingUp, User, LucideProps } from 'lucide-react'
+import { Home, Dumbbell, UtensilsCrossed, TrendingUp, User, LucideProps } from 'lucide-react'
 import { FC } from 'react'
 
 interface NavItem {
@@ -10,8 +10,8 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { to: '/', label: 'Home', icon: Home },
-  { to: '/antrenamente', label: 'Planuri', icon: Dumbbell },
-  { to: '/istoric', label: 'Istoric', icon: ClipboardList },
+  { to: '/antrenamente', label: 'Antrenamente', icon: Dumbbell },
+  { to: '/nutritie', label: 'Nutriție', icon: UtensilsCrossed },
   { to: '/progres', label: 'Progres', icon: TrendingUp },
   { to: '/profil', label: 'Profil', icon: User },
 ]
