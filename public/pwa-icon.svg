@@ -5,14 +5,14 @@
   <polygon points="95,318 114,260 133,318" fill="white" fill-opacity="0.22"/>
   <!-- APEX -->
   <text x="186" y="305"
-    font-family="'Arial Black','Helvetica Neue',Arial,sans-serif"
-    font-weight="900"
+    font-family="'Ubuntu Sans','Liberation Sans',FreeSans,sans-serif"
+    font-weight="800"
     font-size="112"
     fill="white"
     letter-spacing="-2">APEX</text>
   <!-- PULSE -->
   <text x="190" y="350"
-    font-family="Arial,'Helvetica Neue',sans-serif"
+    font-family="'Ubuntu Sans','Liberation Sans',FreeSans,sans-serif"
     font-weight="700"
     font-size="44"
     fill="#FF5C00"
