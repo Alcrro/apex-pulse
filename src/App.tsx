@@ -1,20 +1,24 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./shared/context/AuthContext";
 import { Layout } from "./shared/components/organisms/layout/Layout";
-import { AuthPage } from "./features/auth/pages/Auth";
-import { DashboardPage } from "./features/dashboard/pages/Dashboard";
-import { WorkoutsPage } from "./features/workouts/pages/Workouts";
-import { WorkoutDetailPage } from "./features/workouts/pages/WorkoutDetail";
-import { ActiveSessionPage } from "./features/session/pages/ActiveSession";
-import { HistoryPage } from "./features/history/pages/History";
-import { ProgressPage } from "./features/progress/pages/Progress";
-import { ProfilePage } from "./features/profile/pages/Profile";
-import { ReactNode } from "react";
+import { lazy, Suspense, ReactNode } from "react";
+
+const AuthPage = lazy(() => import("./features/auth/pages/Auth").then(m => ({ default: m.AuthPage })));
+const DashboardPage = lazy(() => import("./features/dashboard/pages/Dashboard").then(m => ({ default: m.DashboardPage })));
+const WorkoutsPage = lazy(() => import("./features/workouts/pages/Workouts").then(m => ({ default: m.WorkoutsPage })));
+const WorkoutDetailPage = lazy(() => import("./features/workouts/pages/WorkoutDetail").then(m => ({ default: m.WorkoutDetailPage })));
+const ActiveSessionPage = lazy(() => import("./features/session/pages/ActiveSession").then(m => ({ default: m.ActiveSessionPage })));
+const ProgressPage = lazy(() => import("./features/progress/pages/Progress").then(m => ({ default: m.ProgressPage })));
+const NutritiePage = lazy(() => import("./features/nutritie/pages/NutritiePage").then(m => ({ default: m.NutritiePage })));
+const NutritieSetariPage = lazy(() => import("./features/nutritie/pages/NutritieSetariPage").then(m => ({ default: m.NutritieSetariPage })));
+const AlimentDetailPage = lazy(() => import("./features/nutritie/pages/AlimentDetailPage").then(m => ({ default: m.AlimentDetailPage })));
+const CustomAlimentPage = lazy(() => import("./features/nutritie/pages/CustomAlimentPage").then(m => ({ default: m.CustomAlimentPage })));
+const ProfilePage = lazy(() => import("./features/profile/pages/Profile").then(m => ({ default: m.ProfilePage })));
 
 function Spinner() {
 	return (
 		<div className="min-h-screen bg-gray-950 flex items-center justify-center">
-			<div className="text-orange-500 font-black text-2xl animate-pulse">AF</div>
+			<div className="text-orange-500 font-black text-2xl animate-pulse">AP</div>
 		</div>
 	);
 }
@@ -37,6 +41,7 @@ function AppRoutes() {
 	if (loading) return <Spinner />;
 
 	return (
+		<Suspense fallback={<Spinner />}>
 		<Routes>
 			<Route
 				path="/auth"
@@ -72,7 +77,23 @@ function AppRoutes() {
 				/>
 				<Route
 					path="istoric"
-					element={<HistoryPage />}
+					element={<Navigate to="/progres" replace />}
+				/>
+				<Route
+					path="nutritie"
+					element={<NutritiePage />}
+				/>
+				<Route
+					path="nutritie/setari"
+					element={<NutritieSetariPage />}
+				/>
+				<Route
+					path="nutritie/aliment/custom/nou"
+					element={<CustomAlimentPage />}
+				/>
+				<Route
+					path="nutritie/aliment/:fdcId"
+					element={<AlimentDetailPage />}
 				/>
 				<Route
 					path="progres"
@@ -101,6 +122,7 @@ function AppRoutes() {
 				}
 			/>
 		</Routes>
+		</Suspense>
 	);
 }
 
