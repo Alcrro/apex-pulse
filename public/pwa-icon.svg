@@ -2,6 +2,7 @@
   <rect width="512" height="512" fill="#0f0f0f"/>
   <!-- triangle -->
   <polygon points="60,318 114,192 168,318" fill="#FF5C00"/>
+  <polygon points="95,318 114,260 133,318" fill="white" fill-opacity="0.22"/>
   <!-- APEX -->
   <text x="186" y="305"
     font-family="'Arial Black','Helvetica Neue',Arial,sans-serif"
