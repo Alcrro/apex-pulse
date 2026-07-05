@@ -1,0 +1,78 @@
+[
+  {
+    "name": "Auth",
+    "status": "done"
+  },
+  {
+    "name": "Dashboard",
+    "status": "done"
+  },
+  {
+    "name": "Antrenamente — Liste Planuri",
+    "status": "done"
+  },
+  {
+    "name": "Antrenamente — Plan Detail",
+    "status": "done"
+  },
+  {
+    "name": "Antrenamente — Quick Start",
+    "status": "done"
+  },
+  {
+    "name": "Antrenamente — Statistici",
+    "status": "done"
+  },
+  {
+    "name": "Sesiune Activă",
+    "status": "done"
+  },
+  {
+    "name": "Exerciții",
+    "status": "done"
+  },
+  {
+    "name": "Istoric",
+    "status": "done"
+  },
+  {
+    "name": "Progres",
+    "status": "done"
+  },
+  {
+    "name": "Profil",
+    "status": "done"
+  },
+  {
+    "name": "Generare Plan AI",
+    "status": "done"
+  },
+  {
+    "name": "Nutriție — Log Zilnic",
+    "status": "in-progress"
+  },
+  {
+    "name": "Nutriție — Scanare Cod de Bare",
+    "status": "in-progress"
+  },
+  {
+    "name": "Nutriție — Obiectiv Caloric",
+    "status": "in-progress"
+  },
+  {
+    "name": "Nutriție — Hidratare",
+    "status": "in-progress"
+  },
+  {
+    "name": "Nutriție — Split Macro",
+    "status": "in-progress"
+  },
+  {
+    "name": "Subscripții Stripe",
+    "status": "in-progress"
+  },
+  {
+    "name": "Integrări Third-Party",
+    "status": "todo"
+  }
+]

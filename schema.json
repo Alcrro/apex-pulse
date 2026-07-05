@@ -1,0 +1,334 @@
+{
+  "nodes": [
+    {
+      "id": "exercises",
+      "collection": "exercises",
+      "color": "#f0883e",
+      "x": 0,
+      "y": 0,
+      "fields": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "name", "type": "text", "required": true },
+        { "name": "muscle_group", "type": "text", "required": true },
+        { "name": "equipment", "type": "text" },
+        { "name": "is_custom", "type": "boolean", "required": true },
+        { "name": "user_id", "type": "uuid → auth.users", "isRef": true },
+        { "name": "created_at", "type": "timestamptz" }
+      ],
+      "detail": "Global exercise library (user_id = null) + user-created custom exercises (is_custom = true). Pre-seeded with ~46 global exercises."
+    },
+    {
+      "id": "workout_plans",
+      "collection": "workout_plans",
+      "color": "#3fb950",
+      "x": 300,
+      "y": 0,
+      "fields": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "user_id", "type": "uuid → auth.users", "isRef": true, "required": true },
+        { "name": "name", "type": "text", "required": true },
+        { "name": "description", "type": "text" },
+        { "name": "created_at", "type": "timestamptz" },
+        { "name": "updated_at", "type": "timestamptz" }
+      ],
+      "detail": "User-created workout plans."
+    },
+    {
+      "id": "workout_exercises",
+      "collection": "workout_exercises",
+      "color": "#38bdf8",
+      "x": 600,
+      "y": 0,
+      "fields": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "workout_plan_id", "type": "uuid → workout_plans", "isRef": true, "required": true },
+        { "name": "exercise_id", "type": "uuid → exercises", "isRef": true, "required": true },
+        { "name": "sets", "type": "int", "required": true },
+        { "name": "reps", "type": "int", "required": true },
+        { "name": "rest_seconds", "type": "int", "required": true },
+        { "name": "order_index", "type": "int", "required": true },
+        { "name": "created_at", "type": "timestamptz" }
+      ],
+      "detail": "Junction table: exercises within a plan with sets, reps, rest, and display order."
+    },
+    {
+      "id": "sessions",
+      "collection": "sessions",
+      "color": "#bc8cff",
+      "x": 0,
+      "y": 320,
+      "fields": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "user_id", "type": "uuid → auth.users", "isRef": true, "required": true },
+        { "name": "workout_plan_id", "type": "uuid → workout_plans", "isRef": true },
+        { "name": "started_at", "type": "timestamptz", "required": true },
+        { "name": "finished_at", "type": "timestamptz" },
+        { "name": "notes", "type": "text" },
+        { "name": "created_at", "type": "timestamptz" }
+      ],
+      "detail": "A single workout session. finished_at = null means in-progress. workout_plan_id = null for free/unplanned sessions."
+    },
+    {
+      "id": "session_logs",
+      "collection": "session_logs",
+      "color": "#fbbf24",
+      "x": 300,
+      "y": 320,
+      "fields": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "session_id", "type": "uuid → sessions", "isRef": true, "required": true },
+        { "name": "exercise_id", "type": "uuid → exercises", "isRef": true, "required": true },
+        { "name": "workout_exercise_id", "type": "uuid → workout_exercises", "isRef": true },
+        { "name": "weight", "type": "numeric(6,2)" },
+        { "name": "reps", "type": "int", "required": true },
+        { "name": "rpe", "type": "numeric(3,1)" },
+        { "name": "notes", "type": "text" },
+        { "name": "logged_at", "type": "timestamptz", "required": true }
+      ],
+      "detail": "Per-set logs within a session. weight = null for bodyweight. RPE range 6.0–10.0."
+    },
+    {
+      "id": "body_weight",
+      "collection": "body_weight",
+      "color": "#22d3ee",
+      "x": 600,
+      "y": 320,
+      "fields": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "user_id", "type": "uuid → auth.users", "isRef": true, "required": true },
+        { "name": "weight", "type": "numeric(5,2)", "required": true },
+        { "name": "recorded_at", "type": "date", "required": true },
+        { "name": "created_at", "type": "timestamptz" }
+      ],
+      "detail": "Daily body weight entries in kg."
+    },
+    {
+      "id": "profiles",
+      "collection": "profiles",
+      "color": "#f472b6",
+      "x": 900,
+      "y": 0,
+      "fields": [
+        { "name": "id", "type": "uuid → auth.users", "pk": true, "isRef": true },
+        { "name": "stripe_customer_id", "type": "text", "unique": true },
+        { "name": "subscription_status", "type": "enum (free | active | past_due | canceled | trialing)" },
+        { "name": "subscription_id", "type": "text", "unique": true },
+        { "name": "subscription_plan", "type": "text" },
+        { "name": "current_period_end", "type": "timestamptz" },
+        { "name": "cancel_at_period_end", "type": "boolean" }
+      ],
+      "detail": "User profile extended with Stripe subscription data. subscription_status defaults to 'free'."
+    },
+    {
+      "id": "stripe_events",
+      "collection": "stripe_events",
+      "color": "#6366f1",
+      "x": 900,
+      "y": 320,
+      "fields": [
+        { "name": "id", "type": "text", "pk": true },
+        { "name": "type", "type": "text", "required": true },
+        { "name": "processed_at", "type": "timestamptz", "required": true },
+        { "name": "payload", "type": "jsonb" }
+      ],
+      "detail": "Stripe webhook idempotency log. id = Stripe evt_xxx. No RLS for frontend; service_role only."
+    },
+    {
+      "id": "food_cache",
+      "collection": "food_cache",
+      "color": "#4ade80",
+      "x": 0,
+      "y": 640,
+      "fields": [
+        { "name": "fdc_id", "type": "text", "pk": true },
+        { "name": "user_id", "type": "uuid → auth.users", "isRef": true },
+        { "name": "name", "type": "text", "required": true },
+        { "name": "name_ro", "type": "text" },
+        { "name": "brand", "type": "text" },
+        { "name": "barcode", "type": "text", "unique": true },
+        { "name": "calories_per_g", "type": "numeric(8,4)", "required": true },
+        { "name": "protein_g", "type": "numeric(8,4)", "required": true },
+        { "name": "carbs_g", "type": "numeric(8,4)", "required": true },
+        { "name": "fat_g", "type": "numeric(8,4)", "required": true },
+        { "name": "sugar_g", "type": "numeric(8,4)" },
+        { "name": "fiber_g", "type": "numeric(8,4)" },
+        { "name": "saturated_fat_g", "type": "numeric(8,4)" },
+        { "name": "sodium_mg", "type": "numeric(8,4)" },
+        { "name": "vitamins", "type": "jsonb" },
+        { "name": "minerals", "type": "jsonb" },
+        { "name": "amino_acids", "type": "jsonb" },
+        { "name": "available_units", "type": "jsonb" },
+        { "name": "data_source", "type": "enum (usda | openfoodfacts | manual_ro | custom)", "required": true },
+        { "name": "cached_at", "type": "timestamptz" },
+        { "name": "raw_usda", "type": "jsonb" }
+      ],
+      "detail": "Cached food items from USDA FDC and Open Food Facts. barcode stores EAN-13/UPC-A for barcode scan lookup. user_id = null for shared cache."
+    },
+    {
+      "id": "nutrition_logs",
+      "collection": "nutrition_logs",
+      "color": "#fb923c",
+      "x": 350,
+      "y": 640,
+      "fields": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "user_id", "type": "uuid → auth.users", "isRef": true, "required": true },
+        { "name": "log_date", "type": "date", "required": true },
+        { "name": "total_calories", "type": "numeric(8,2)", "required": true },
+        { "name": "total_protein_g", "type": "numeric(8,2)", "required": true },
+        { "name": "total_carbs_g", "type": "numeric(8,2)", "required": true },
+        { "name": "total_fat_g", "type": "numeric(8,2)", "required": true },
+        { "name": "water_ml", "type": "int", "required": true },
+        { "name": "water_target_ml", "type": "int", "required": true },
+        { "name": "calories_burned", "type": "int" },
+        { "name": "target_calories", "type": "int" },
+        { "name": "deleted_at", "type": "timestamptz" },
+        { "name": "created_at", "type": "timestamptz" },
+        { "name": "updated_at", "type": "timestamptz" }
+      ],
+      "detail": "Daily nutrition totals per user. UNIQUE(user_id, log_date). Totals auto-updated by trigger on meal_entries."
+    },
+    {
+      "id": "meal_entries",
+      "collection": "meal_entries",
+      "color": "#a78bfa",
+      "x": 700,
+      "y": 640,
+      "fields": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "user_id", "type": "uuid → auth.users", "isRef": true, "required": true },
+        { "name": "log_id", "type": "uuid → nutrition_logs", "isRef": true, "required": true },
+        { "name": "fdc_id", "type": "text → food_cache", "isRef": true, "required": true },
+        { "name": "meal_type", "type": "enum (mic_dejun | pranz | cina | gustare)", "required": true },
+        { "name": "quantity", "type": "numeric(7,2)", "required": true },
+        { "name": "unit", "type": "enum (grame | pounds | ml | bucata)", "required": true },
+        { "name": "grams_equivalent", "type": "numeric(7,2)", "required": true },
+        { "name": "calories", "type": "numeric(8,2)", "required": true },
+        { "name": "protein_g", "type": "numeric(8,2)", "required": true },
+        { "name": "carbs_g", "type": "numeric(8,2)", "required": true },
+        { "name": "fat_g", "type": "numeric(8,2)", "required": true },
+        { "name": "deleted_at", "type": "timestamptz" },
+        { "name": "added_at", "type": "timestamptz", "required": true }
+      ],
+      "detail": "Individual food entries per meal within a nutrition log. Soft-deleted via deleted_at. Trigger updates parent nutrition_logs totals."
+    },
+    {
+      "id": "nutrition_goals",
+      "collection": "nutrition_goals",
+      "color": "#34d399",
+      "x": 1050,
+      "y": 640,
+      "fields": [
+        { "name": "user_id", "type": "uuid → auth.users", "pk": true, "isRef": true },
+        { "name": "goal_type", "type": "enum (mentinere | deficit_usor | deficit_moderat | surplus)" },
+        { "name": "tdee_estimated", "type": "int" },
+        { "name": "tdee_calculated_at", "type": "timestamptz" },
+        { "name": "tdee_warning", "type": "boolean" },
+        { "name": "target_calories", "type": "int" },
+        { "name": "is_manual_override", "type": "boolean" },
+        { "name": "target_protein_pct", "type": "smallint" },
+        { "name": "target_carbs_pct", "type": "smallint" },
+        { "name": "target_fat_pct", "type": "smallint" },
+        { "name": "onboarding_triggered_at", "type": "timestamptz" },
+        { "name": "updated_at", "type": "timestamptz" }
+      ],
+      "detail": "User calorie and macro goals (one row per user). protein_pct + carbs_pct + fat_pct must equal 100."
+    },
+    {
+      "id": "food_frequency",
+      "collection": "food_frequency",
+      "color": "#facc15",
+      "x": 1050,
+      "y": 400,
+      "fields": [
+        { "name": "user_id", "type": "uuid → auth.users", "pk": true, "isRef": true },
+        { "name": "fdc_id", "type": "text → food_cache", "pk": true, "isRef": true },
+        { "name": "use_count", "type": "int", "required": true },
+        { "name": "last_used", "type": "timestamptz", "required": true }
+      ],
+      "detail": "Tracks how often each user uses a food item. Updated by trigger on meal_entries insert. Powers 'frequent foods' suggestions."
+    }
+  ],
+  "edges": [
+    {
+      "id": "we_plan",
+      "source": "workout_plans",
+      "sourceHandle": "r",
+      "target": "workout_exercises",
+      "targetHandle": "l",
+      "label": "workout_plan_id",
+      "animated": true,
+      "color": "#3fb950"
+    },
+    {
+      "id": "we_ex",
+      "source": "exercises",
+      "sourceHandle": "r",
+      "target": "workout_exercises",
+      "targetHandle": "l",
+      "label": "exercise_id",
+      "animated": true,
+      "color": "#f0883e"
+    },
+    {
+      "id": "sess_plan",
+      "source": "workout_plans",
+      "sourceHandle": "b",
+      "target": "sessions",
+      "targetHandle": "t",
+      "label": "workout_plan_id",
+      "animated": true,
+      "color": "#3fb950"
+    },
+    {
+      "id": "log_sess",
+      "source": "sessions",
+      "sourceHandle": "r",
+      "target": "session_logs",
+      "targetHandle": "l",
+      "label": "session_id",
+      "animated": true,
+      "color": "#bc8cff"
+    },
+    {
+      "id": "log_ex",
+      "source": "exercises",
+      "sourceHandle": "b",
+      "target": "session_logs",
+      "targetHandle": "t",
+      "label": "exercise_id",
+      "animated": true,
+      "color": "#f0883e"
+    },
+    {
+      "id": "me_log",
+      "source": "nutrition_logs",
+      "sourceHandle": "r",
+      "target": "meal_entries",
+      "targetHandle": "l",
+      "label": "log_id",
+      "animated": true,
+      "color": "#fb923c"
+    },
+    {
+      "id": "me_food",
+      "source": "food_cache",
+      "sourceHandle": "r",
+      "target": "meal_entries",
+      "targetHandle": "l",
+      "label": "fdc_id",
+      "animated": true,
+      "color": "#4ade80"
+    },
+    {
+      "id": "ff_food",
+      "source": "food_cache",
+      "sourceHandle": "r",
+      "target": "food_frequency",
+      "targetHandle": "l",
+      "label": "fdc_id",
+      "animated": true,
+      "color": "#4ade80"
+    }
+  ]
+}

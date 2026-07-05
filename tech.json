@@ -1,0 +1,16 @@
+[
+  "React 18",
+  "TypeScript",
+  "Vite",
+  "Supabase (PostgreSQL + Auth + RLS)",
+  "Tailwind CSS",
+  "React Router v6",
+  "Recharts",
+  "Lucide React",
+  "@dnd-kit (drag-and-drop)",
+  "@anthropic-ai/sdk (AI plan generator)",
+  "@zxing/browser (barcode fallback Safari)",
+  "Stripe",
+  "PWA (vite-plugin-pwa)",
+  "Vitest"
+]
