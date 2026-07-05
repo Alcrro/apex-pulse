@@ -109,15 +109,28 @@ export function NutritiePage() {
   const navigate = useNavigate()
   const [date, setDate] = useState(formatDate(new Date()))
   const today = formatDate(new Date())
-  const [mealCount, setMealCount] = useState(DEFAULT_MEALS)
+  const getMealCountKey = (d: string) => `mealCount_${d}`
+
+  const [mealCount, setMealCount] = useState(() => {
+    const saved = localStorage.getItem(getMealCountKey(formatDate(new Date())))
+    return saved ? Math.max(DEFAULT_MEALS, parseInt(saved)) : DEFAULT_MEALS
+  })
   const [notifOpen, setNotifOpen] = useState(false)
 
   const { log, loading, addFoodEntry, updateFoodEntry, removeFoodEntry, addWater } = useNutritionLog(date)
 
-  // Reset meal count when navigating to a different day
-  useEffect(() => { setMealCount(DEFAULT_MEALS) }, [date])
+  // When switching dates restore persisted count (or default)
+  useEffect(() => {
+    const saved = localStorage.getItem(getMealCountKey(date))
+    setMealCount(saved ? Math.max(DEFAULT_MEALS, parseInt(saved)) : DEFAULT_MEALS)
+  }, [date])
 
-  // Expand to show all meals that already have entries on this day
+  // Persist mealCount changes to localStorage
+  useEffect(() => {
+    localStorage.setItem(getMealCountKey(date), String(mealCount))
+  }, [mealCount, date])
+
+  // Also expand if log has entries in meals beyond current count
   useEffect(() => {
     if (!log?.entries?.length) return
     const maxFromLog = log.entries.reduce((max, e) => {
@@ -241,7 +254,7 @@ export function NutritiePage() {
               </div>
               <span className="text-[10px] font-bold text-blue-400 tabular-nums">
                 {waterMl}
-                <span className="text-gray-600 font-normal">/{waterTarget}ml</span>
+                <span className="text-blue-400 font-semibold">/{waterTarget}ml</span>
               </span>
             </div>
             <WaterBottle pct={waterPct} />
