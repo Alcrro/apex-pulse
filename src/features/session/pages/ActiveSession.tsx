@@ -47,7 +47,8 @@ export function ActiveSessionPage() {
   )
 
   return (
-    <div className="space-y-4 pt-2">
+    <div className="min-h-screen bg-gray-950">
+      <div className="max-w-2xl w-full mx-auto px-4 pt-4 pb-8 space-y-4">
       <SessionHeader
         title={session?.workout_plans?.name ?? 'Antrenament activ'}
         elapsed={elapsed}
@@ -65,7 +66,7 @@ export function ActiveSessionPage() {
           }, {})
         ).map(([group, items]) => (
           <div key={group}>
-            <p className="text-xs font-semibold uppercase tracking-widest text-orange-500 mb-2 px-1">{group}</p>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-2 px-1" style={{ color: '#D4B96A' }}>{group}</p>
             <div className="space-y-3">
               {items.map(we => (
                 <SessionExerciseBlock
@@ -90,6 +91,7 @@ export function ActiveSessionPage() {
         onClose={() => setShowFinish(false)}
         onSave={handleFinish}
       />
+      </div>
     </div>
   )
 }

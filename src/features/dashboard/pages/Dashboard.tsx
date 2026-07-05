@@ -1,5 +1,4 @@
-import { useNavigate } from 'react-router-dom'
-import { Download } from 'lucide-react'
+import { Download, Utensils, Dumbbell } from 'lucide-react'
 import { useAuth } from '../../../shared/context/AuthContext'
 import { useWorkouts } from '../../workouts/hooks/useWorkouts'
 import { useSessions } from '../../session/hooks/useSessions'
@@ -7,27 +6,18 @@ import { useInstallPWA } from '../../../shared/hooks/useInstallPWA'
 import { getWeeklyCount } from '../utils/formatters'
 import { DashboardGreeting } from '../components/DashboardGreeting'
 import { StatsGrid } from '../components/StatsGrid'
-import { WorkoutQuickStart } from '../components/WorkoutQuickStart'
 import { LastSessionCard } from '../components/LastSessionCard'
 import { WeeklyRhythmStrip } from '../components/WeeklyRhythmStrip'
+import { DashboardNutritieCard } from '../components/DashboardNutritieCard'
 
 export function DashboardPage() {
   const { user } = useAuth()
   const { workouts } = useWorkouts()
   const { sessions } = useSessions()
-  const navigate = useNavigate()
 
   const { canInstall, isIOS, install } = useInstallPWA()
   const name = (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? 'Sportiv'
   const lastSession = sessions.find(s => s.finished_at)
-
-  // sessions are ordered desc by started_at — first occurrence per workout is most recent
-  const lastSessionByWorkout: Record<string, string> = {}
-  for (const s of sessions) {
-    if (s.finished_at && s.workout_plan_id && !lastSessionByWorkout[s.workout_plan_id]) {
-      lastSessionByWorkout[s.workout_plan_id] = s.started_at
-    }
-  }
 
   return (
     <div className="space-y-6 pt-2 pb-4">
@@ -59,23 +49,27 @@ export function DashboardPage() {
         </div>
       )}
 
-      <StatsGrid
-        weeklyCount={getWeeklyCount(sessions)}
-        totalCount={sessions.filter(s => s.finished_at).length}
-        plansCount={workouts.length}
-      />
+      <section className="space-y-3">
+        <h3 className="text-orange-500 text-xs font-semibold tracking-widest uppercase flex items-center gap-2">
+          <Utensils size={12} />
+          Nutriție
+        </h3>
+        <DashboardNutritieCard />
+      </section>
 
-      <WorkoutQuickStart
-        workouts={workouts}
-        lastSessionByWorkout={lastSessionByWorkout}
-        onStart={id => navigate(`/sesiune/${id}`)}
-        onViewAll={() => navigate('/antrenamente')}
-        onCreatePlan={() => navigate('/antrenamente')}
-      />
-
-      {lastSession && <LastSessionCard session={lastSession} />}
-
-      <WeeklyRhythmStrip sessions={sessions} />
+      <section className="space-y-3">
+        <h3 className="text-forge-gold text-xs font-semibold tracking-widest uppercase flex items-center gap-2">
+          <Dumbbell size={12} />
+          Antrenamente
+        </h3>
+        <StatsGrid
+          weeklyCount={getWeeklyCount(sessions)}
+          totalCount={sessions.filter(s => s.finished_at).length}
+          plansCount={workouts.length}
+        />
+        {lastSession && <LastSessionCard session={lastSession} />}
+        <WeeklyRhythmStrip sessions={sessions} />
+      </section>
     </div>
   )
 }

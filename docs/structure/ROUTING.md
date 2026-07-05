@@ -4,11 +4,16 @@
 | Path | Component | Protected | Description |
 |------|-----------|-----------|-------------|
 | `/auth` | `AuthPage` | No (redirects to `/` if logged in) | Email/password login and registration |
-| `/` | `DashboardPage` | Yes | Home dashboard with stats, quick-start, last session |
-| `/antrenamente` | `WorkoutsPage` | Yes | List of workout plans; create/delete plans |
+| `/` | `DashboardPage` | Yes | Home dashboard with nutrition card, stats, last session, weekly strip |
+| `/antrenamente` | `WorkoutsPage` | Yes | Quick-start workout plan list; start any plan directly |
+| `/antrenamente/setari` | `WorkoutsSetariPage` | Yes | Plan management (create/delete) + AI split generator |
 | `/antrenamente/:id` | `WorkoutDetailPage` | Yes | Plan detail; add/edit/remove/reorder exercises |
 | `/sesiune/:workoutId` | `ActiveSessionPage` | Yes | Full-screen active workout session |
-| `/istoric` | `HistoryPage` | Yes | Chronological list of finished sessions |
+| `/istoric` | — | Yes | Redirects to `/progres` (route removed, history merged into progress) |
+| `/nutritie` | `NutritiePage` | Yes | Daily nutrition log with meals, macros, water tracking |
+| `/nutritie/setari` | `NutritieSetariPage` | Yes | Nutrition goals setup (calories, macros, TDEE) |
+| `/nutritie/aliment/custom/nou` | `CustomAlimentPage` | Yes | Create a custom food item |
+| `/nutritie/aliment/:fdcId` | `AlimentDetailPage` | Yes | Food detail from USDA FDC database |
 | `/progres` | `ProgressPage` | Yes | Exercise 1RM chart + body weight chart |
 | `/profil` | `ProfilePage` | Yes | User info, aggregate stats, sign-out |
 | `*` (catch-all) | — | — | Redirects to `/` |
@@ -41,22 +46,24 @@ During the initial auth check (`loading = true`), both `PrivateRoute` and `AppRo
 Fixed at bottom; visible on all standard routes (inside `Layout`). 5 tabs:
 - Home (`/`) — `Home` icon, label "Home"
 - Planuri (`/antrenamente`) — `Dumbbell` icon, label "Planuri"
-- Istoric (`/istoric`) — `ClipboardList` icon, label "Istoric"
+- Nutriție (`/nutritie`) — `Utensils` icon, label "Nutriție"
 - Progres (`/progres`) — `TrendingUp` icon, label "Progres"
 - Profil (`/profil`) — `User` icon, label "Profil"
+
+Note: The "Istoric" tab was removed; `/istoric` now redirects to `/progres`.
 
 Active tab uses `NavLink` `isActive` state, colored `text-orange-500`; inactive tabs are `text-gray-500`.
 
 **Header:**
-Sticky top header showing "AF" logo and a page title mapped from `PAGE_TITLES` record:
+Sticky top header showing "AP" logo (ApexPulse branding) and a page title mapped from `PAGE_TITLES` record:
 ```
 '/'             → 'Dashboard'
 '/antrenamente' → 'Antrenamente'
-'/istoric'      → 'Istoric'
 '/progres'      → 'Progres'
 '/profil'       → 'Profil'
+'/nutritie'     → 'Nutriție'
 ```
-Falls back to `'AppFitness'` for unmapped paths (e.g. `/antrenamente/:id`).
+Falls back to the app name for unmapped paths (e.g. `/antrenamente/:id`, `/antrenamente/setari`).
 
 **Active session:**
 `/sesiune/:workoutId` renders `ActiveSessionPage` directly (not inside `Layout`), so it has no Header or BottomNav. Navigation away is only via the `SessionHeader`'s back/finish buttons, which open the `FinishSessionModal` to confirm ending the session.

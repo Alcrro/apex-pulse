@@ -18,6 +18,10 @@
     color-scheme: dark;
   }
 
+  html.light {
+    color-scheme: light;
+  }
+
   body {
     background-color: var(--color-surface);
     color: var(--color-content);
@@ -28,6 +32,51 @@
     @apply box-border;
   }
 }
+
+/* ── Light theme overrides ────────────────────────────────── */
+html.light body { background-color: #f1f5f9; color: #0f172a; }
+
+/* Backgrounds */
+html.light .bg-gray-950    { background-color: #f1f5f9 !important; }
+html.light .bg-gray-900    { background-color: #ffffff !important; }
+html.light .bg-gray-800    { background-color: #e2e8f0 !important; }
+html.light .bg-gray-700    { background-color: #cbd5e1 !important; }
+html.light .bg-gray-800\/60  { background-color: rgba(226,232,240,0.6) !important; }
+html.light .bg-gray-800\/50  { background-color: rgba(226,232,240,0.5) !important; }
+/* Header & nav sticky backgrounds (opacity variants) */
+html.light .bg-gray-950\/90  { background-color: rgba(255,255,255,0.95) !important; }
+html.light .bg-gray-950\/95  { background-color: rgba(255,255,255,0.97) !important; }
+
+/* Text */
+html.light .text-white      { color: #0f172a !important; }
+html.light .text-forge-text { color: #0f172a !important; }
+html.light .text-forge-muted{ color: #475569 !important; }
+html.light .text-gray-100   { color: #1e293b !important; }
+html.light .text-gray-200   { color: #334155 !important; }
+html.light .text-gray-300   { color: #475569 !important; }
+html.light .text-gray-400   { color: #64748b !important; }
+html.light .text-gray-500   { color: #64748b !important; }
+html.light .text-gray-600   { color: #94a3b8 !important; }
+
+/* Borders */
+html.light .border-gray-800      { border-color: #e2e8f0 !important; }
+html.light .border-gray-800\/50  { border-color: rgba(226,232,240,0.7) !important; }
+html.light .border-gray-800\/60  { border-color: rgba(226,232,240,0.8) !important; }
+html.light .border-gray-700      { border-color: #cbd5e1 !important; }
+html.light .border-gray-600      { border-color: #94a3b8 !important; }
+html.light .border-t             { border-color: #e2e8f0; }
+
+/* Hover */
+html.light .hover\:bg-gray-800:hover   { background-color: #e2e8f0 !important; }
+html.light .hover\:bg-gray-700:hover   { background-color: #cbd5e1 !important; }
+html.light .hover\:border-gray-700:hover { border-color: #cbd5e1 !important; }
+html.light .hover\:text-gray-300:hover { color: #334155 !important; }
+html.light .hover\:text-white:hover    { color: #0f172a !important; }
+
+/* Misc */
+html.light .placeholder-gray-600::placeholder { color: #94a3b8 !important; }
+html.light .divide-gray-800 > * + *    { border-color: #e2e8f0 !important; }
+html.light .shadow-lg { box-shadow: 0 4px 16px 0 rgba(0,0,0,0.08) !important; }
 
 @layer utilities {
   .scrollbar-hide {

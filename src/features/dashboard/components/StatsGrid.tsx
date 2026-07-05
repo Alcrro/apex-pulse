@@ -6,7 +6,7 @@ interface StatsGridProps {
 
 function StatCard({ value, label }: { value: number; label: string }) {
   return (
-    <div className="bg-forge-surface rounded-xl p-4 text-center">
+    <div className="bg-gray-900 rounded-xl p-4 text-center">
       <div
         className="font-black text-forge-gold leading-none tabular-nums"
         style={{ fontSize: '2.5rem', letterSpacing: '-0.03em' }}

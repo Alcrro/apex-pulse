@@ -11,8 +11,8 @@ interface WorkoutCardProps {
 export function WorkoutCard({ workout, onClick, onDelete }: WorkoutCardProps) {
   return (
     <Card className="p-4 flex items-center gap-3" onClick={onClick}>
-      <div className="w-10 h-10 bg-orange-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
-        <Dumbbell size={20} className="text-orange-500" />
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#D4B96A1A' }}>
+        <Dumbbell size={20} style={{ color: '#D4B96A' }} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-white truncate">{workout.name}</div>

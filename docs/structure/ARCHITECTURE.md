@@ -1,7 +1,9 @@
 # Architecture
 
 ## Overview
-AppFitness is a single-page React application (Vite + TypeScript) backed by a Supabase PostgreSQL database. All business logic lives in the browser; the server is purely Supabase (Auth + PostgREST + Row-Level Security). There is no custom backend.
+ApexPulse is a single-page React application (Vite + TypeScript) backed by a Supabase PostgreSQL database. All business logic lives in the browser; the server is purely Supabase (Auth + PostgREST + Row-Level Security). There is no custom backend.
+
+An external AI dependency exists: `useGenerateWorkouts` calls the Anthropic Claude API directly from the browser (`@anthropic-ai/sdk`, `dangerouslyAllowBrowser: true`) using a `VITE_CLAUDE_API_KEY` env var.
 
 ## Folder structure philosophy
 ```
@@ -18,10 +20,11 @@ src/
       utils/                       # Feature-local formatters/helpers
     exercises/
       hooks/                       # Data hooks (no page — data-only feature)
-    history/
+    nutritie/
       components/
-      pages/
-      utils/
+      hooks/                       # useNutritionLog, useNutritionTarget, useWeeklyCalories, etc.
+      pages/                       # NutritiePage, NutritieSetariPage, AlimentDetailPage, CustomAlimentPage
+      utils/                       # nutritionHelpers.ts
     profile/
       components/
       pages/
@@ -39,6 +42,7 @@ src/
       components/
       hooks/
       pages/
+      utils/                       # splitTypes.ts — DayType, SplitConfig, SPLIT_TEMPLATES
   shared/                          # Cross-feature reusables
     components/
       atoms/                       # Button, Card, Input
@@ -47,9 +51,11 @@ src/
         layout/                    # Layout, Header, BottomNav
     context/
       AuthContext.tsx              # Global auth state
+    hooks/
+      useInstallPWA.ts             # PWA install prompt + iOS detection
     lib/
       supabase.ts                  # Supabase client singleton
-      exercises.ts                 # Exercise constants + calculate1RM
+      exercises.ts                 # Exercise constants (DEFAULT_EXERCISES, MUSCLE_GROUPS, EQUIPMENT_TYPES) + calculate1RM
       exercise_images.ts           # Static exercise image URL map
     types/
       index.ts                     # All domain TypeScript interfaces
@@ -84,3 +90,5 @@ All data is fetched fresh on component mount. There is no shared cache, no globa
 - **`forge-*` tokens** — `tailwind.config.js` defines a `forge` color palette (`forge-base`, `forge-surface`, `forge-surface2`, `forge-gold`, `forge-text`, `forge-muted`) used in dashboard and session components; older components use raw `gray-*` Tailwind classes
 - **TypeScript strict mode** — `tsconfig.app.json` has strict mode enabled; all domain types are in `shared/types/index.ts`
 - **No testing infrastructure** — no test files, no test runner configured
+- **PWA** — `vite-plugin-pwa` configured; `useInstallPWA` in `shared/hooks/` captures `beforeinstallprompt` and provides `canInstall` / `isIOS` / `install()` to any component
+- **Lazy-loaded routes** — all page components are wrapped in `React.lazy()` + `<Suspense>` with a full-screen "AP" spinner fallback; reduces initial bundle size

@@ -1,11 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./shared/context/AuthContext";
+import { ThemeProvider } from "./shared/context/ThemeContext";
 import { Layout } from "./shared/components/organisms/layout/Layout";
 import { lazy, Suspense, ReactNode } from "react";
 
 const AuthPage = lazy(() => import("./features/auth/pages/Auth").then(m => ({ default: m.AuthPage })));
 const DashboardPage = lazy(() => import("./features/dashboard/pages/Dashboard").then(m => ({ default: m.DashboardPage })));
 const WorkoutsPage = lazy(() => import("./features/workouts/pages/Workouts").then(m => ({ default: m.WorkoutsPage })));
+const WorkoutsSetariPage = lazy(() => import("./features/workouts/pages/WorkoutsSetari").then(m => ({ default: m.WorkoutsSetariPage })));
 const WorkoutDetailPage = lazy(() => import("./features/workouts/pages/WorkoutDetail").then(m => ({ default: m.WorkoutDetailPage })));
 const ActiveSessionPage = lazy(() => import("./features/session/pages/ActiveSession").then(m => ({ default: m.ActiveSessionPage })));
 const ProgressPage = lazy(() => import("./features/progress/pages/Progress").then(m => ({ default: m.ProgressPage })));
@@ -72,6 +74,10 @@ function AppRoutes() {
 					element={<WorkoutsPage />}
 				/>
 				<Route
+					path="antrenamente/setari"
+					element={<WorkoutsSetariPage />}
+				/>
+				<Route
 					path="antrenamente/:id"
 					element={<WorkoutDetailPage />}
 				/>
@@ -129,9 +135,11 @@ function AppRoutes() {
 export default function App() {
 	return (
 		<BrowserRouter>
-			<AuthProvider>
-				<AppRoutes />
-			</AuthProvider>
+			<ThemeProvider>
+				<AuthProvider>
+					<AppRoutes />
+				</AuthProvider>
+			</ThemeProvider>
 		</BrowserRouter>
 	);
 }

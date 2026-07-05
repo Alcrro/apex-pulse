@@ -1,4 +1,3 @@
-import { History } from 'lucide-react'
 import { formatDate, getDuration, getDaysSince } from '../utils/formatters'
 import type { Session } from '../../../shared/types'
 
@@ -9,11 +8,7 @@ export function LastSessionCard({ session }: { session: Session }) {
 
   return (
     <div>
-      <h3 className="text-forge-muted text-xs font-semibold tracking-widest uppercase mb-3 flex items-center gap-2">
-        <History size={12} />
-        Ultima sesiune
-      </h3>
-      <div className="bg-forge-surface rounded-xl p-4 flex items-center justify-between gap-4">
+      <div className="bg-gray-900 rounded-xl p-4 flex items-center justify-between gap-4">
         <div className="min-w-0">
           <div className="font-semibold text-forge-text truncate">
             {session.workout_plans?.name ?? 'Antrenament liber'}

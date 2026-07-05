@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Droplets, SlidersHorizontal, Bell, ChevronRight as ArrowRight, AlertTriangle, Info, Plus } from 'lucide-react'
-import { useAuth } from '../../../shared/context/AuthContext'
+import { ChevronLeft, ChevronRight, Droplets, Settings, Bell, ChevronRight as ArrowRight, AlertTriangle, Info, Plus } from 'lucide-react'
 import { useNutritionLog } from '../hooks/useNutritionLog'
 import { useNutritionTarget } from '../hooks/useNutritionTarget'
 import { MealCard } from '../components/MealCard'
@@ -57,10 +56,10 @@ function MacroBar({
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs text-gray-500">{label}</span>
-        <span className="text-xs font-semibold text-white">
+        <span className="text-xs font-semibold" style={{ color }}>{label}</span>
+        <span className="text-sm font-bold tabular-nums" style={{ color }}>
           {Math.round(value)}
-          {target ? <span className="text-gray-600 font-normal"> / {target}g</span> : 'g'}
+          <span className="font-bold text-white"> / {target ?? '—'}g</span>
         </span>
       </div>
       <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
@@ -104,131 +103,14 @@ function WaterBottle({ pct }: { pct: number }) {
   )
 }
 
-// ── UserCard ───────────────────────────────────────────────────────────────
-
-function UserCard({
-  userName,
-  notifications,
-  onSettings,
-}: {
-  userName: string
-  notifications: NutritionNotification[]
-  onSettings: () => void
-}) {
-  const navigate = useNavigate()
-  const [notifOpen, setNotifOpen] = useState(false)
-  const count = notifications.length
-
-  const todayLabel = new Date().toLocaleDateString('ro-RO', {
-    weekday: 'long', day: 'numeric', month: 'long',
-  })
-
-  const initial = userName.charAt(0).toUpperCase()
-
-  return (
-    <div className="bg-gray-900 rounded-2xl overflow-hidden">
-      {/* main row */}
-      <div className="flex items-center gap-3 px-4 py-3.5">
-        {/* avatar */}
-        <div className="w-10 h-10 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center justify-center shrink-0">
-          <span className="text-base font-black text-orange-500">{initial}</span>
-        </div>
-
-        {/* name + date */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-white leading-tight">
-            Bună, {userName.split(' ')[0]}!
-          </p>
-          <p className="text-xs text-gray-500 capitalize mt-0.5">{todayLabel}</p>
-        </div>
-
-        {/* actions */}
-        <div className="flex items-center gap-1">
-          {/* bell */}
-          <button
-            onClick={() => setNotifOpen((v) => !v)}
-            className={`relative p-2 rounded-xl transition-colors ${
-              notifOpen ? 'bg-orange-500/15 text-orange-400' : 'hover:bg-gray-800 text-gray-500 hover:text-white'
-            }`}
-          >
-            <Bell size={18} />
-            {count > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-orange-500 flex items-center justify-center">
-                <span className="text-[9px] font-black text-white leading-none">{count}</span>
-              </span>
-            )}
-          </button>
-
-          {/* settings */}
-          <button
-            onClick={onSettings}
-            className="p-2 rounded-xl hover:bg-gray-800 text-gray-500 hover:text-orange-500 transition-colors"
-          >
-            <SlidersHorizontal size={18} />
-          </button>
-        </div>
-      </div>
-
-      {/* notifications panel */}
-      {notifOpen && count > 0 && (
-        <div className="border-t border-gray-800">
-          <p className="text-[10px] text-gray-600 font-semibold uppercase tracking-wider px-4 pt-3 pb-1">
-            Recomandări
-          </p>
-          {notifications.map((n, i) => (
-            <button
-              key={n.id}
-              onClick={() => { navigate('/nutritie/setari'); setNotifOpen(false) }}
-              className={`w-full flex items-start gap-3 px-4 py-3 hover:bg-gray-800/60 active:bg-gray-800 transition-colors text-left ${
-                i < notifications.length - 1 ? 'border-b border-gray-800/60' : ''
-              }`}
-            >
-              <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
-                n.kind === 'warning' ? 'bg-orange-500/15' : 'bg-blue-500/15'
-              }`}>
-                {n.kind === 'warning'
-                  ? <AlertTriangle size={13} className="text-orange-400" />
-                  : <Info size={13} className="text-blue-400" />
-                }
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold ${n.kind === 'warning' ? 'text-orange-400' : 'text-blue-400'}`}>
-                  {n.title}
-                </p>
-                <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{n.description}</p>
-              </div>
-              <ArrowRight size={14} className="text-gray-600 shrink-0 mt-1" />
-            </button>
-          ))}
-
-          <div className="px-4 pb-3 pt-2">
-            <button
-              onClick={() => { navigate('/nutritie/setari'); setNotifOpen(false) }}
-              className="w-full py-2.5 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 text-xs font-bold transition-colors"
-            >
-              Deschide setările nutriție
-            </button>
-          </div>
-        </div>
-      )}
-
-      {notifOpen && count === 0 && (
-        <div className="border-t border-gray-800 px-4 py-4 flex items-center gap-2">
-          <span className="text-xs text-gray-500">Totul e la zi — nicio recomandare.</span>
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ── page ───────────────────────────────────────────────────────────────────
 
 export function NutritiePage() {
   const navigate = useNavigate()
-  const { user } = useAuth()
   const [date, setDate] = useState(formatDate(new Date()))
   const today = formatDate(new Date())
   const [mealCount, setMealCount] = useState(DEFAULT_MEALS)
+  const [notifOpen, setNotifOpen] = useState(false)
 
   const { log, loading, addFoodEntry, updateFoodEntry, removeFoodEntry, addWater } = useNutritionLog(date)
 
@@ -264,18 +146,11 @@ export function NutritiePage() {
   const monthLabel = new Date(date).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })
   const sameWeekAsToday = getMondayOf(date) === getMondayOf(today)
 
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Utilizator'
   const notifications = buildNotifications(phase, avgCalories)
+  const notifCount = notifications.length
 
   return (
     <div className="space-y-3 pb-6">
-
-      {/* ── user card ───────────────────────────────────────── */}
-      <UserCard
-        userName={userName}
-        notifications={notifications}
-        onSettings={() => navigate('/nutritie/setari')}
-      />
 
       {/* ── month / week navigation ─────────────────────────── */}
       <div className="flex items-center justify-between px-1">
@@ -312,7 +187,30 @@ export function NutritiePage() {
           {/* LEFT: calories + macro bars */}
           <div className="bg-gray-900 rounded-2xl p-4 flex flex-col gap-3">
             <div>
-              <p className="text-[11px] text-gray-500 mb-1">Calorii azi</p>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-[11px] text-gray-500">Calorii azi</p>
+                <div className="flex items-center gap-0.5 -mr-1">
+                  <button
+                    onClick={() => setNotifOpen(v => !v)}
+                    className={`relative p-1.5 rounded-lg transition-colors ${
+                      notifOpen ? 'bg-orange-500/15 text-orange-400' : 'text-gray-500 hover:text-white hover:bg-gray-800'
+                    }`}
+                  >
+                    <Bell size={14} />
+                    {notifCount > 0 && (
+                      <span className="absolute top-0.5 right-0.5 w-3 h-3 rounded-full bg-orange-500 flex items-center justify-center">
+                        <span className="text-[7px] font-black text-white leading-none">{notifCount}</span>
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => navigate('/nutritie/setari')}
+                    className="p-1.5 rounded-lg text-orange-500 hover:bg-orange-500/10 transition-colors"
+                  >
+                    <Settings size={14} />
+                  </button>
+                </div>
+              </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-black text-white tabular-nums leading-none">
                   {totalCalories.toLocaleString('ro-RO')}
@@ -360,6 +258,55 @@ export function NutritiePage() {
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* ── notifications panel ─────────────────────────────── */}
+      {notifOpen && (
+        <div className="bg-gray-900 rounded-2xl overflow-hidden">
+          {notifCount > 0 ? (
+            <>
+              <p className="text-[10px] text-gray-600 font-semibold uppercase tracking-wider px-4 pt-3 pb-1">
+                Recomandări
+              </p>
+              {notifications.map((n, i) => (
+                <button
+                  key={n.id}
+                  onClick={() => { navigate('/nutritie/setari'); setNotifOpen(false) }}
+                  className={`w-full flex items-start gap-3 px-4 py-3 hover:bg-gray-800/60 active:bg-gray-800 transition-colors text-left ${
+                    i < notifications.length - 1 ? 'border-b border-gray-800/60' : ''
+                  }`}
+                >
+                  <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                    n.kind === 'warning' ? 'bg-orange-500/15' : 'bg-blue-500/15'
+                  }`}>
+                    {n.kind === 'warning'
+                      ? <AlertTriangle size={13} className="text-orange-400" />
+                      : <Info size={13} className="text-blue-400" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-xs font-semibold ${n.kind === 'warning' ? 'text-orange-400' : 'text-blue-400'}`}>
+                      {n.title}
+                    </p>
+                    <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{n.description}</p>
+                  </div>
+                  <ArrowRight size={14} className="text-gray-600 shrink-0 mt-1" />
+                </button>
+              ))}
+              <div className="px-4 pb-3 pt-2">
+                <button
+                  onClick={() => { navigate('/nutritie/setari'); setNotifOpen(false) }}
+                  className="w-full py-2.5 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 text-xs font-bold transition-colors"
+                >
+                  Deschide setările nutriție
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="px-4 py-4 flex items-center gap-2">
+              <span className="text-xs text-gray-500">Totul e la zi — nicio recomandare.</span>
+            </div>
+          )}
         </div>
       )}
 

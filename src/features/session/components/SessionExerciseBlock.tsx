@@ -74,7 +74,7 @@ export function SessionExerciseBlock({ we, logs, restSeconds, prevLog, onLogSet,
           <h4 className="font-bold text-white">{we.exercises?.name}</h4>
           <p className="text-xs text-gray-400">{we.exercises?.muscle_group} • {we.sets} × {we.reps} rep</p>
           {prevLog && (
-            <p className="text-xs text-orange-400/70 mt-0.5">
+            <p className="text-xs mt-0.5" style={{ color: '#D4B96A99' }}>
               Ultima dată: {prevLog.weight != null ? `${prevLog.weight} kg × ` : ''}{prevLog.reps} rep
             </p>
           )}
@@ -143,7 +143,7 @@ export function SessionExerciseBlock({ we, logs, restSeconds, prevLog, onLogSet,
         </p>
       )}
 
-      <Button onClick={handleLog} className="w-full" disabled={logging}>
+      <Button variant="gold" onClick={handleLog} className="w-full" disabled={logging}>
         <Check size={16} />
         {logging ? 'Se salvează...' : `Înregistrează set ${exerciseLogs.length + 1}`}
       </Button>

@@ -1,4 +1,5 @@
 import { getWeekTrainingDays, getWeeklyCount } from '../utils/formatters'
+import { useTheme } from '../../../shared/context/ThemeContext'
 import type { Session } from '../../../shared/types'
 
 const DAYS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
@@ -6,6 +7,8 @@ const DAYS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
 export function WeeklyRhythmStrip({ sessions }: { sessions: Session[] }) {
   const trainingDays = getWeekTrainingDays(sessions)
   const weeklyCount = getWeeklyCount(sessions)
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
 
   const raw = new Date().getDay()
   const todayIdx = raw === 0 ? 6 : raw - 1
@@ -18,7 +21,7 @@ export function WeeklyRhythmStrip({ sessions }: { sessions: Session[] }) {
         : `${weeklyCount} antrenamente săptămâna aceasta`
 
   return (
-    <div className="bg-forge-surface rounded-xl p-5">
+    <div className="bg-gray-900 rounded-xl p-5">
       <div className="text-forge-muted text-xs font-semibold tracking-widest uppercase mb-5">
         Săptămâna aceasta
       </div>
@@ -34,7 +37,7 @@ export function WeeklyRhythmStrip({ sessions }: { sessions: Session[] }) {
                 className="w-9 h-9 rounded-full transition-all"
                 style={{
                   backgroundColor: trained ? '#D4B96A' : 'transparent',
-                  border: `2px solid ${trained ? '#D4B96A' : isToday ? '#909090' : '#2A2A2A'}`,
+                  border: `2px solid ${trained ? '#D4B96A' : isToday ? '#909090' : isDark ? '#2A2A2A' : '#cbd5e1'}`,
                   boxShadow: trained && isToday ? '0 0 0 3px #D4B96A28' : 'none',
                 }}
               />
@@ -43,7 +46,7 @@ export function WeeklyRhythmStrip({ sessions }: { sessions: Session[] }) {
                 style={{
                   fontSize: '0.6rem',
                   letterSpacing: '0.05em',
-                  color: isToday ? '#F0EFEC' : '#616161',
+                  color: isToday ? (isDark ? '#F0EFEC' : '#0f172a') : (isDark ? '#616161' : '#64748b'),
                 }}
               >
                 {day}

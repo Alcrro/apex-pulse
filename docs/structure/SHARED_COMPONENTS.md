@@ -99,11 +99,11 @@ div.min-h-screen.bg-gray-950.flex.flex-col
 ---
 
 ### `Header` (`src/shared/components/organisms/layout/Header.tsx`)
-Sticky top bar showing the "AF" logo and the current page title.
+Sticky top bar showing the "AP" logo (ApexPulse) and the current page title.
 
 - Uses `useLocation()` to look up the title from `PAGE_TITLES` record
-- `PAGE_TITLES` maps: `/` → `'Dashboard'`, `/antrenamente` → `'Antrenamente'`, `/istoric` → `'Istoric'`, `/progres` → `'Progres'`, `/profil` → `'Profil'`
-- Falls back to `'AppFitness'` for paths not in the map (e.g. `/antrenamente/:id`)
+- `PAGE_TITLES` maps: `/` → `'Dashboard'`, `/antrenamente` → `'Antrenamente'`, `/progres` → `'Progres'`, `/profil` → `'Profil'`, `/nutritie` → `'Nutriție'`
+- Falls back to the app name for paths not in the map (e.g. `/antrenamente/:id`, `/antrenamente/setari`)
 - Height: `h-14`; style: `bg-gray-950/90 backdrop-blur-md border-b border-gray-800/50 sticky top-0 z-40`
 
 ---
@@ -115,13 +115,33 @@ Fixed bottom navigation with 5 tabs using React Router `NavLink`.
 |-----|----|-------|------|
 | Home | `/` | Home | `Home` |
 | Planuri | `/antrenamente` | Planuri | `Dumbbell` |
-| Istoric | `/istoric` | Istoric | `ClipboardList` |
+| Nutriție | `/nutritie` | Nutriție | `Utensils` |
 | Progres | `/progres` | Progres | `TrendingUp` |
 | Profil | `/profil` | Profil | `User` |
+
+Note: The "Istoric" tab was replaced by the "Nutriție" tab. The `/istoric` route now redirects to `/progres`.
 
 - Active tab: `text-orange-500`; inactive: `text-gray-500 hover:text-gray-300`
 - The Home link uses `end` prop so `/antrenamente` doesn't also activate the Home tab
 - Style: `fixed bottom-0 left-0 right-0 z-40 bg-gray-950/95 backdrop-blur-md border-t border-gray-800/50`
+
+---
+
+---
+
+## Shared Hooks
+
+### `useInstallPWA` (`src/shared/hooks/useInstallPWA.ts`)
+Handles PWA install prompt detection for both Android/desktop (standard `beforeinstallprompt` API) and iOS (manual instructions via Share sheet).
+
+**Returns:**
+- `canInstall: boolean` — true when `beforeinstallprompt` was captured and not yet dismissed (non-iOS)
+- `isIOS: boolean` — true when user agent matches iPhone/iPad/iPod and the app is not already running as a standalone PWA
+- `install: () => Promise<void>` — calls `prompt()` on the captured event; sets `canInstall = false` after
+
+**Usage in `DashboardPage`:**
+- `canInstall` → shows an "Instalează aplicația" button with `onClick={install}`
+- `isIOS` → shows a static banner with Share → Add to Home Screen instructions
 
 ---
 
