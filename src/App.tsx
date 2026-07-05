@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./shared/context/AuthContext";
 import { ThemeProvider } from "./shared/context/ThemeContext";
+import { SubscriptionProvider } from "./shared/context/SubscriptionContext";
 import { Layout } from "./shared/components/organisms/layout/Layout";
 import { lazy, Suspense, ReactNode } from "react";
 
@@ -16,6 +17,9 @@ const NutritieSetariPage = lazy(() => import("./features/nutritie/pages/Nutritie
 const AlimentDetailPage = lazy(() => import("./features/nutritie/pages/AlimentDetailPage").then(m => ({ default: m.AlimentDetailPage })));
 const CustomAlimentPage = lazy(() => import("./features/nutritie/pages/CustomAlimentPage").then(m => ({ default: m.CustomAlimentPage })));
 const ProfilePage = lazy(() => import("./features/profile/pages/Profile").then(m => ({ default: m.ProfilePage })));
+const AbonamentPage = lazy(() => import("./features/abonament/pages/AbonamentPage").then(m => ({ default: m.AbonamentPage })));
+const AbonamentSucesPage = lazy(() => import("./features/abonament/pages/AbonamentSucesPage").then(m => ({ default: m.AbonamentSucesPage })));
+const AbonamentAnulatPage = lazy(() => import("./features/abonament/pages/AbonamentAnulatPage").then(m => ({ default: m.AbonamentAnulatPage })));
 
 function Spinner() {
 	return (
@@ -109,7 +113,27 @@ function AppRoutes() {
 					path="profil"
 					element={<ProfilePage />}
 				/>
+				<Route
+					path="abonament"
+					element={<AbonamentPage />}
+				/>
 			</Route>
+			<Route
+				path="abonament/succes"
+				element={
+					<PrivateRoute>
+						<AbonamentSucesPage />
+					</PrivateRoute>
+				}
+			/>
+			<Route
+				path="abonament/anulat"
+				element={
+					<PrivateRoute>
+						<AbonamentAnulatPage />
+					</PrivateRoute>
+				}
+			/>
 			<Route
 				path="sesiune/:workoutId"
 				element={
@@ -137,7 +161,9 @@ export default function App() {
 		<BrowserRouter>
 			<ThemeProvider>
 				<AuthProvider>
-					<AppRoutes />
+					<SubscriptionProvider>
+						<AppRoutes />
+					</SubscriptionProvider>
 				</AuthProvider>
 			</ThemeProvider>
 		</BrowserRouter>

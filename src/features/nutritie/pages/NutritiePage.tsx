@@ -146,7 +146,7 @@ export function NutritiePage() {
   const totalCarbs    = log?.totalCarbsG ?? 0
   const totalFat      = log?.totalFatG ?? 0
   const waterMl       = log?.waterMl ?? 0
-  const waterTarget   = log?.waterTargetMl ?? 2000
+  const waterTarget   = Number(localStorage.getItem('water_target_ml') || 2000)
   const waterPct      = Math.min((waterMl / waterTarget) * 100, 100)
 
   const hasActiveGoal = phase === 'active' && goals?.targetCalories

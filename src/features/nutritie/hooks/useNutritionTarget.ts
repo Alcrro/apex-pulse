@@ -64,9 +64,11 @@ export function useNutritionTarget() {
 
   const phase: NutritionPhase = goals?.goalType ? 'active' : 'discovery'
 
-  const split = goals?.goalType
-    ? GOAL_MACRO_SPLIT[goals.goalType]
-    : DEFAULT_SPLIT
+  const split = {
+    protein: goals?.targetProteinPct ?? DEFAULT_SPLIT.protein,
+    carbs:   goals?.targetCarbsPct   ?? DEFAULT_SPLIT.carbs,
+    fat:     goals?.targetFatPct     ?? DEFAULT_SPLIT.fat,
+  }
 
   const macroTargets = goals?.targetCalories
     ? computeMacroTargets(goals.targetCalories, split)

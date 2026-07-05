@@ -10,7 +10,14 @@ docs/
 
 ## Step 1 — Find undocumented features
 
-Check which directories exist under `src/features/` and which ones are missing a corresponding `docs/features/<name>/` folder. Only process features that have NO docs yet. If all features are documented, report that and stop.
+Run the following to map what exists:
+```
+find docs/features/ -name "PRD.md" -o -name "TECH_SPEC.md" -o -name "DATABASE.md" -o -name "TODO.md"
+```
+
+For each directory under `src/features/`, a feature is considered **documented** if `docs/features/<name>/` contains at least one `PRD.md` anywhere in its tree (including subfolders). Use `find docs/features/<name>/ -name "PRD.md"` to check.
+
+Only process features where **no** `PRD.md` is found anywhere under `docs/features/<name>/`. If all features are covered, report that and stop.
 
 Also check if `docs/structure/` exists. If not, generate the structure docs too (see Step 4).
 

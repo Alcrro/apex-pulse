@@ -143,12 +143,29 @@ Reguli:
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Utilizator neautentificat.')
 
-      // 3. create workout plans in DB
-      for (const plan of parsed.plans) {
-        // create the plan
+      // 3. optionally create a program
+      let programId: string | null = null
+      if (config.programName) {
+        await supabase.from('programs').update({ is_active: false }).eq('user_id', user.id)
+        const { data: newProgram } = await supabase
+          .from('programs')
+          .insert({ user_id: user.id, name: config.programName, is_active: true })
+          .select('id')
+          .single()
+        programId = newProgram?.id ?? null
+      }
+
+      // 4. create workout plans in DB
+      for (const [planIndex, plan] of parsed.plans.entries()) {
+        const planInsert: Record<string, unknown> = { name: plan.name, user_id: user.id }
+        if (programId) {
+          planInsert.program_id = programId
+          planInsert.program_order = planIndex
+        }
+
         const { data: newPlan, error: planErr } = await supabase
           .from('workout_plans')
-          .insert({ name: plan.name, user_id: user.id })
+          .insert(planInsert)
           .select('id')
           .single()
 

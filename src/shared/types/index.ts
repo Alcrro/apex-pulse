@@ -16,7 +16,20 @@ export interface WorkoutPlan {
   description: string | null
   created_at: string
   updated_at: string
+  edit_count: number
+  program_id: string | null
+  program_order: number
+  is_active: boolean
   workout_exercises?: Array<{ count: number }>
+}
+
+export interface Program {
+  id: string
+  user_id: string
+  name: string
+  is_active: boolean
+  created_at: string
+  workout_plans?: WorkoutPlan[]
 }
 
 export interface WorkoutExercise {
@@ -122,4 +135,18 @@ export interface NutritionGoals {
   targetProteinPct: number
   targetCarbsPct: number
   targetFatPct: number
+}
+
+// ─── Subscripții Stripe ───────────────────────────────────────────────────────
+
+export type SubscriptionStatus = 'free' | 'active' | 'past_due' | 'canceled' | 'trialing'
+export type SubscriptionPlan = 'free' | 'premium'
+
+export interface UserSubscription {
+  subscription_status: SubscriptionStatus
+  subscription_plan: SubscriptionPlan
+  subscription_id: string | null
+  stripe_customer_id: string | null
+  current_period_end: string | null
+  cancel_at_period_end: boolean
 }

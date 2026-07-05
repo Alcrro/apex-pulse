@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Flame, SlidersHorizontal, Droplets,
-  BookOpen, Check, ChevronDown, ChevronUp, AlertCircle,
+  BookOpen, Check, ChevronDown, ChevronUp, AlertCircle, Percent, Weight,
 } from 'lucide-react'
 import { useNutritionTarget } from '../hooks/useNutritionTarget'
 import { GoalSelector } from '../components/GoalSelector'
@@ -75,6 +75,49 @@ function MacroInputRow({
   )
 }
 
+// ── macro row — gram input mode ───────────────────────────────────────────
+
+function MacroGramRow({
+  label,
+  color,
+  value,
+  pct,
+  kcal,
+  onChange,
+}: {
+  label: string
+  color: string
+  value: string
+  pct: number
+  kcal: number
+  onChange: (v: string) => void
+}) {
+  return (
+    <div className="flex items-center gap-3 py-3 border-b border-gray-800 last:border-0">
+      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+      <span className="text-sm text-white flex-1">{label}</span>
+      <div className="flex items-center bg-gray-800 rounded-lg px-3 py-1.5">
+        <input
+          type="number"
+          min={0}
+          max={2000}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-16 bg-transparent text-white text-sm font-bold text-right outline-none tabular-nums"
+          placeholder="0"
+          inputMode="numeric"
+        />
+        <span className="text-xs text-gray-500 ml-1">g</span>
+      </div>
+      <div className="text-right w-20">
+        <span className="text-xs text-gray-500 tabular-nums">{pct}%</span>
+        <span className="text-xs text-gray-600 ml-1">·</span>
+        <span className="text-xs tabular-nums ml-1" style={{ color }}>{kcal} kcal</span>
+      </div>
+    </div>
+  )
+}
+
 // ── collapsible info accordion ────────────────────────────────────────────
 
 function InfoAccordion({
@@ -124,7 +167,7 @@ function InfoLine({ label, value }: { label: string; value: string }) {
 export function NutritieSetariPage() {
   const navigate = useNavigate()
   const {
-    goals, phase, macroTargets, avgCalories,
+    goals, phase, loading, macroTargets, avgCalories,
     setGoalType, setManualCalories, setCustomMacroSplit,
   } = useNutritionTarget()
 
@@ -150,9 +193,20 @@ export function NutritieSetariPage() {
   const macroSum = protein + carbs + fat
   const macroValid = macroSum === 100
 
+  // ── gram input mode ────────────────────────────────────────────────────
+  const [gramMode, setGramMode] = useState(() =>
+    localStorage.getItem('nutrition_macro_gram_mode') === 'true'
+  )
+  const [gramP, setGramP] = useState('')
+  const [gramC, setGramC] = useState('')
+  const [gramF, setGramF] = useState('')
+
   // ── water target ───────────────────────────────────────────────────────
   const WATER_OPTIONS = [1500, 2000, 2500, 3000]
-  const [waterTarget, setWaterTarget] = useState(2000)
+  const [waterTarget, setWaterTarget] = useState(() => {
+    const stored = localStorage.getItem('water_target_ml')
+    return stored ? Number(stored) : 2000
+  })
   const [waterSaved, setWaterSaved] = useState(false)
 
   // sync state when goals load
@@ -163,7 +217,14 @@ export function NutritieSetariPage() {
     setProtein(goals.targetProteinPct)
     setCarbs(goals.targetCarbsPct)
     setFat(goals.targetFatPct)
-  }, [goals])
+    // Restore gram inputs when returning to gram mode after refresh
+    if (gramMode && goals.targetCalories) {
+      const kcal = goals.targetCalories
+      setGramP(String(Math.round((kcal * goals.targetProteinPct) / 100 / 4)))
+      setGramC(String(Math.round((kcal * goals.targetCarbsPct) / 100 / 4)))
+      setGramF(String(Math.round((kcal * goals.targetFatPct) / 100 / 9)))
+    }
+  }, [goals]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // keep macro split in sync when goal preset changes
   useEffect(() => {
@@ -193,19 +254,27 @@ export function NutritieSetariPage() {
   }
 
   async function handleSaveMacro() {
-    if (!macroValid) return
-    await setCustomMacroSplit(protein, carbs, fat)
+    if (gramMode) {
+      if (!gramValid) return
+      await setCustomMacroSplit(gramPPct, gramCPct, gramFPct)
+      await setManualCalories(gramKcal)
+      setManualMode(true)
+      setManualKcal(String(gramKcal))
+    } else {
+      if (!macroValid) return
+      await setCustomMacroSplit(protein, carbs, fat)
+    }
     setMacroSaved(true)
     setTimeout(() => setMacroSaved(false), 2500)
   }
 
   function handleSaveWater() {
-    // persisted locally for now; water_target_ml updates per-log
+    localStorage.setItem('water_target_ml', String(waterTarget))
     setWaterSaved(true)
     setTimeout(() => setWaterSaved(false), 2500)
   }
 
-  // ── computed grams ─────────────────────────────────────────────────────
+  // ── computed grams (% mode) ────────────────────────────────────────────
 
   const targetKcal = manualMode
     ? parseInt(manualKcal, 10) || tdee
@@ -216,6 +285,35 @@ export function NutritieSetariPage() {
   const pG = Math.round((targetKcal * protein) / 100 / 4)
   const cG = Math.round((targetKcal * carbs) / 100 / 4)
   const fG = Math.round((targetKcal * fat) / 100 / 9)
+
+  // ── gram mode derived values ───────────────────────────────────────────
+
+  const gP = Math.max(0, parseInt(gramP) || 0)
+  const gC = Math.max(0, parseInt(gramC) || 0)
+  const gF = Math.max(0, parseInt(gramF) || 0)
+  const gramKcal = gP * 4 + gC * 4 + gF * 9
+  const gramPPct = gramKcal > 0 ? Math.round((gP * 4 / gramKcal) * 100) : 0
+  const gramCPct = gramKcal > 0 ? Math.round((gC * 4 / gramKcal) * 100) : 0
+  const gramFPct = gramKcal > 0 ? 100 - gramPPct - gramCPct : 0
+  const gramValid = gramKcal > 0
+
+  function switchToGrams() {
+    setGramP(String(pG))
+    setGramC(String(cG))
+    setGramF(String(fG))
+    setGramMode(true)
+    localStorage.setItem('nutrition_macro_gram_mode', 'true')
+  }
+
+  function switchToPct() {
+    if (gramValid) {
+      setProtein(gramPPct)
+      setCarbs(gramCPct)
+      setFat(gramFPct)
+    }
+    setGramMode(false)
+    localStorage.removeItem('nutrition_macro_gram_mode')
+  }
 
   // ── render ─────────────────────────────────────────────────────────────
 
@@ -263,25 +361,42 @@ export function NutritieSetariPage() {
           {/* manual override toggle */}
           <div className="mt-4 flex items-center justify-between py-3 border-t border-gray-800">
             <div>
-              <p className="text-sm text-white font-semibold">Calorii manuale</p>
-              <p className="text-xs text-gray-500 mt-0.5">Suprascrie calculul automat</p>
+              <p className={`text-sm font-semibold ${gramMode ? 'text-gray-500' : 'text-white'}`}>
+                Calorii manuale
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {gramMode ? 'Dezactivat — caloriile sunt definite de macros' : 'Suprascrie calculul automat'}
+              </p>
             </div>
             <button
-              onClick={() => setManualMode((v) => !v)}
+              onClick={() => !gramMode && !loading && setManualMode((v) => !v)}
+              disabled={gramMode || loading}
               className={`relative w-11 h-6 rounded-full transition-colors ${
-                manualMode ? 'bg-orange-500' : 'bg-gray-700'
+                gramMode || loading ? 'bg-gray-700 opacity-40 cursor-not-allowed' : manualMode ? 'bg-orange-500' : 'bg-gray-700'
               }`}
             >
               <span
-                className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
-                  manualMode ? 'translate-x-5' : 'translate-x-0.5'
+                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+                  manualMode && !gramMode ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
             </button>
           </div>
 
-          {manualMode && (
-            <div className="mt-2 flex gap-2 items-center">
+          {gramMode ? (
+            <div className="mt-2">
+              <div className="flex items-center bg-gray-800/40 border border-gray-700/40 rounded-xl px-4 py-2.5 gap-2">
+                <span className="flex-1 text-gray-500 font-bold text-lg tabular-nums">
+                  {gramValid ? gramKcal.toLocaleString('ro-RO') : '—'}
+                </span>
+                <span className="text-sm text-gray-600 shrink-0">kcal / zi</span>
+                <span className="text-xs text-orange-400 font-semibold shrink-0 border border-orange-500/30 bg-orange-500/10 px-2 py-0.5 rounded-lg">
+                  din macros
+                </span>
+              </div>
+            </div>
+          ) : manualMode ? (
+            <div className="mt-2">
               <div className="flex-1 flex items-center bg-gray-800 rounded-xl px-4 py-2.5 gap-2">
                 <input
                   type="number"
@@ -295,15 +410,16 @@ export function NutritieSetariPage() {
                 <span className="text-sm text-gray-500 shrink-0">kcal / zi</span>
               </div>
             </div>
-          )}
+          ) : null}
 
           {/* save row */}
           <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-800">
             <SavedBadge show={goalSaved} />
             <button
               onClick={manualMode ? handleSaveManual : handleSaveGoal}
-              disabled={!manualMode && !activeGoal}
+              disabled={gramMode || (!manualMode && !activeGoal)}
               className="ml-auto px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-white text-sm font-bold transition-all disabled:opacity-40"
+              title={gramMode ? 'Salvează din secțiunea Split macronutrienți' : undefined}
             >
               Salvează obiectivul
             </button>
@@ -314,61 +430,98 @@ export function NutritieSetariPage() {
             2. SPLIT MACRONUTRIENȚI
         ════════════════════════════════════════════════════ */}
         <section className="bg-gray-900 rounded-2xl p-4">
-          <SectionHeader
-            icon={<SlidersHorizontal size={16} className="text-purple-400" />}
-            title="Split macronutrienți"
-          />
+          <div className="flex items-center justify-between mb-4">
+            <SectionHeader
+              icon={<SlidersHorizontal size={16} className="text-purple-400" />}
+              title="Split macronutrienți"
+            />
+            {/* mode toggle */}
+            <div className="flex gap-0.5 bg-gray-800 rounded-lg p-0.5 -mt-4">
+              <button
+                onClick={switchToPct}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
+                  !gramMode ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                <Percent size={11} />
+                %
+              </button>
+              <button
+                onClick={switchToGrams}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
+                  gramMode ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                <Weight size={11} />
+                g
+              </button>
+            </div>
+          </div>
 
-          <p className="text-xs text-gray-500 mb-4 -mt-1">
-            Procentele trebuie să sumeze exact 100%. Ajustează cu ±5%.
+          <p className="text-xs text-gray-500 mb-4 -mt-2">
+            {gramMode
+              ? 'Introdu gramele dorite. Procentele și caloriile se calculează automat.'
+              : 'Procentele trebuie să sumeze exact 100%. Ajustează cu ±5%.'}
           </p>
 
           {/* preview bar */}
           <div className="flex h-2 rounded-full overflow-hidden mb-4 gap-px">
-            <div className="transition-all duration-300" style={{ width: `${protein}%`, backgroundColor: '#60a5fa' }} />
-            <div className="transition-all duration-300" style={{ width: `${carbs}%`, backgroundColor: '#facc15' }} />
-            <div className="transition-all duration-300" style={{ width: `${fat}%`, backgroundColor: '#f97316' }} />
+            <div className="transition-all duration-300" style={{ width: `${gramMode ? gramPPct : protein}%`, backgroundColor: '#60a5fa' }} />
+            <div className="transition-all duration-300" style={{ width: `${gramMode ? gramCPct : carbs}%`, backgroundColor: '#facc15' }} />
+            <div className="transition-all duration-300" style={{ width: `${gramMode ? gramFPct : fat}%`, backgroundColor: '#f97316' }} />
           </div>
 
           <div className="bg-gray-800/40 rounded-xl px-3">
-            <MacroInputRow
-              label="Proteine"
-              color="#60a5fa"
-              value={protein}
-              grams={pG}
-              onChange={setProtein}
-            />
-            <MacroInputRow
-              label="Carbohidrați"
-              color="#facc15"
-              value={carbs}
-              grams={cG}
-              onChange={setCarbs}
-            />
-            <MacroInputRow
-              label="Grăsimi"
-              color="#f97316"
-              value={fat}
-              grams={fG}
-              onChange={setFat}
-            />
+            {gramMode ? (
+              <>
+                <MacroGramRow label="Proteine"    color="#60a5fa" value={gramP} onChange={setGramP} pct={gramPPct} kcal={gP * 4} />
+                <MacroGramRow label="Carbohidrați" color="#facc15" value={gramC} onChange={setGramC} pct={gramCPct} kcal={gC * 4} />
+                <MacroGramRow label="Grăsimi"     color="#f97316" value={gramF} onChange={setGramF} pct={gramFPct} kcal={gF * 9} />
+              </>
+            ) : (
+              <>
+                <MacroInputRow label="Proteine"    color="#60a5fa" value={protein} grams={pG} onChange={setProtein} />
+                <MacroInputRow label="Carbohidrați" color="#facc15" value={carbs}   grams={cG} onChange={setCarbs} />
+                <MacroInputRow label="Grăsimi"     color="#f97316" value={fat}     grams={fG} onChange={setFat} />
+              </>
+            )}
           </div>
 
-          {/* sum validation */}
+          {/* validation row */}
           <div className="flex items-center justify-between mt-3 px-1">
-            <div className="flex items-center gap-1.5">
-              {macroValid ? (
-                <Check size={13} className="text-green-400" />
-              ) : (
-                <AlertCircle size={13} className="text-red-400" />
-              )}
-              <span className={`text-xs font-semibold ${macroValid ? 'text-green-400' : 'text-red-400'}`}>
-                Total: {macroSum}% {macroValid ? '✓' : `— lipsesc ${100 - macroSum}%`}
-              </span>
-            </div>
-            <span className="text-xs text-gray-600">
-              {targetKcal.toLocaleString('ro-RO')} kcal bază
-            </span>
+            {gramMode ? (
+              <>
+                <div className="flex items-center gap-1.5">
+                  {gramValid ? (
+                    <Flame size={13} className="text-orange-400" />
+                  ) : (
+                    <AlertCircle size={13} className="text-gray-600" />
+                  )}
+                  <span className={`text-xs font-semibold ${gramValid ? 'text-orange-400' : 'text-gray-600'}`}>
+                    {gramValid ? `${gramKcal.toLocaleString('ro-RO')} kcal calculate din macros` : 'Introdu gramele'}
+                  </span>
+                </div>
+                <span className="text-xs text-gray-600">
+                  P {gramPPct}% · C {gramCPct}% · G {gramFPct}%
+                </span>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-1.5">
+                  {macroValid ? (
+                    <Check size={13} className="text-green-400" />
+                  ) : (
+                    <AlertCircle size={13} className="text-red-400" />
+                  )}
+                  <span className={`text-xs font-semibold ${macroValid ? 'text-green-400' : 'text-red-400'}`}>
+                    Total: {macroSum}% {macroValid ? '✓' : `— lipsesc ${100 - macroSum}%`}
+                  </span>
+                </div>
+                <span className="text-xs text-gray-600">
+                  {targetKcal.toLocaleString('ro-RO')} kcal bază
+                </span>
+              </>
+            )}
           </div>
 
           {/* save row */}
@@ -376,7 +529,7 @@ export function NutritieSetariPage() {
             <SavedBadge show={macroSaved} />
             <button
               onClick={handleSaveMacro}
-              disabled={!macroValid}
+              disabled={gramMode ? !gramValid : !macroValid}
               className="ml-auto px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-white text-sm font-bold transition-all disabled:opacity-40"
             >
               Salvează split-ul

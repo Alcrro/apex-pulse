@@ -5,6 +5,7 @@ import {
   SPLIT_TEMPLATES, type DayType, type WeekDays, type SplitConfig,
 } from '../utils/splitTypes'
 import { useGenerateWorkouts } from '../hooks/useGenerateWorkouts'
+import { useTheme } from '../../../shared/context/ThemeContext'
 
 const GOLD = '#D4B96A'
 
@@ -16,20 +17,51 @@ const LEVEL_OPTIONS: { id: SplitConfig['level']; label: string; desc: string }[]
 
 const DEFAULT_DAYS: WeekDays = ['rest', 'rest', 'rest', 'rest', 'rest', 'rest', 'rest']
 
+const LEVEL_LABELS: Record<SplitConfig['level'], string> = {
+  incepator: 'Începător',
+  intermediar: 'Intermediar',
+  avansat: 'Avansat',
+}
+
+function buildDefaultProgramName(templateId: string | null, level: SplitConfig['level']): string {
+  if (!templateId) return ''
+  const tpl = SPLIT_TEMPLATES.find(t => t.id === templateId)
+  if (!tpl) return ''
+  return `${tpl.name} - ${LEVEL_LABELS[level]}`
+}
+
 export function SplitConfigurator({ onGenerated }: { onGenerated: () => void }) {
   const [open, setOpen] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [days, setDays] = useState<WeekDays>(DEFAULT_DAYS)
   const [level, setLevel] = useState<SplitConfig['level']>('intermediar')
+  const [programName, setProgramName] = useState('')
   const [done, setDone] = useState(false)
 
   const { generate, loading, error } = useGenerateWorkouts()
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+
+  const goldText = isDark ? GOLD : '#8B6200'
+  const goldBg = isDark ? GOLD + '12' : GOLD + '25'
+  const goldBorder = isDark ? GOLD + '60' : GOLD + '80'
+
+  const unselectedBtn = isDark
+    ? { borderColor: '#2A3040', color: '#9ca3af' }
+    : { borderColor: '#e2e8f0', color: '#475569' }
+
+  const restDayBtn = isDark
+    ? { borderColor: '#2A3040', backgroundColor: '#1a1f2e' }
+    : { borderColor: '#e2e8f0', backgroundColor: '#f1f5f9' }
+
+  const restDayText = isDark ? '#6b7280' : '#94a3b8'
 
   function applyTemplate(templateId: string) {
     const tpl = SPLIT_TEMPLATES.find(t => t.id === templateId)
     if (!tpl) return
     setSelectedTemplate(templateId)
     setDays([...tpl.days] as WeekDays)
+    setProgramName(buildDefaultProgramName(templateId, level))
   }
 
   function cycleDay(idx: number) {
@@ -47,7 +79,7 @@ export function SplitConfigurator({ onGenerated }: { onGenerated: () => void }) 
 
   async function handleGenerate() {
     setDone(false)
-    const ok = await generate({ days, level })
+    const ok = await generate({ days, level, programName: programName.trim() || undefined })
     if (ok) {
       setDone(true)
       onGenerated()
@@ -87,8 +119,8 @@ export function SplitConfigurator({ onGenerated }: { onGenerated: () => void }) 
                   className="text-left px-3 py-2.5 rounded-xl border transition-all"
                   style={
                     selectedTemplate === tpl.id
-                      ? { borderColor: GOLD + '60', backgroundColor: GOLD + '12', color: GOLD }
-                      : { borderColor: '#2A2A2A', backgroundColor: 'transparent', color: '#9ca3af' }
+                      ? { borderColor: goldBorder, backgroundColor: goldBg, color: goldText }
+                      : { ...unselectedBtn, backgroundColor: 'transparent' }
                   }
                 >
                   <div className="text-xs font-semibold leading-tight">{tpl.name}</div>
@@ -112,15 +144,15 @@ export function SplitConfigurator({ onGenerated }: { onGenerated: () => void }) 
                     key={idx}
                     onClick={() => cycleDay(idx)}
                     className="flex flex-col items-center gap-1 py-2.5 rounded-xl border transition-all active:scale-95"
-                    style={{
-                      borderColor: isRest ? '#2A2A2A' : cfg.color + '50',
-                      backgroundColor: isRest ? '#1a1f2e' : cfg.color + '15',
-                    }}
+                    style={isRest
+                      ? restDayBtn
+                      : { borderColor: cfg.color + '50', backgroundColor: cfg.color + '15' }
+                    }
                   >
                     <span className="text-[10px] text-gray-500 font-semibold">{DAY_LABELS[idx]}</span>
                     <span
                       className="text-[9px] font-bold leading-tight text-center"
-                      style={{ color: isRest ? '#4A4A4A' : cfg.color }}
+                      style={{ color: isRest ? restDayText : cfg.color }}
                     >
                       {cfg.label}
                     </span>
@@ -142,12 +174,15 @@ export function SplitConfigurator({ onGenerated }: { onGenerated: () => void }) 
               {LEVEL_OPTIONS.map(opt => (
                 <button
                   key={opt.id}
-                  onClick={() => setLevel(opt.id)}
+                  onClick={() => {
+                    setLevel(opt.id)
+                    if (selectedTemplate) setProgramName(buildDefaultProgramName(selectedTemplate, opt.id))
+                  }}
                   className="flex-1 py-2.5 px-2 rounded-xl border text-center transition-all"
                   style={
                     level === opt.id
-                      ? { borderColor: GOLD + '60', backgroundColor: GOLD + '12', color: GOLD }
-                      : { borderColor: '#2A2A2A', color: '#6b7280' }
+                      ? { borderColor: goldBorder, backgroundColor: goldBg, color: goldText }
+                      : unselectedBtn
                   }
                 >
                   <div className="text-xs font-semibold">{opt.label}</div>
@@ -175,6 +210,30 @@ export function SplitConfigurator({ onGenerated }: { onGenerated: () => void }) 
             </div>
           )}
 
+          {/* ── Nume program ── */}
+          <div>
+            <p className="text-[11px] text-gray-500 uppercase tracking-widest font-semibold mb-2">
+              Numele programului
+            </p>
+            <input
+              type="text"
+              value={programName}
+              onChange={e => setProgramName(e.target.value)}
+              placeholder="ex: PPL - Intermediar"
+              className="w-full px-3 py-2.5 rounded-xl text-sm outline-none transition-all"
+              style={{
+                backgroundColor: isDark ? '#111827' : '#f8fafc',
+                border: `1px solid ${isDark ? '#374151' : '#e2e8f0'}`,
+                color: isDark ? '#f9fafb' : '#0f172a',
+              }}
+            />
+            <p className="text-[10px] text-gray-600 mt-1.5">
+              {programName.trim()
+                ? 'Planurile vor fi grupate într-un program cu rotație automată.'
+                : 'Lasă gol pentru planuri independente.'}
+            </p>
+          </div>
+
           {/* ── Error ── */}
           {error && (
             <div className="flex items-start gap-2 text-red-400 bg-red-400/10 rounded-xl px-3 py-2.5">
@@ -189,9 +248,9 @@ export function SplitConfigurator({ onGenerated }: { onGenerated: () => void }) 
             disabled={loading || uniqueTypes.length === 0}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all active:scale-95 disabled:opacity-40"
             style={{
-              backgroundColor: done ? '#4ade8020' : GOLD + '1A',
-              color: done ? '#4ade80' : GOLD,
-              border: `1px solid ${done ? '#4ade8040' : GOLD + '40'}`,
+              backgroundColor: done ? '#4ade8020' : goldBg,
+              color: done ? '#4ade80' : goldText,
+              border: `1px solid ${done ? '#4ade8040' : goldBorder}`,
             }}
           >
             {loading ? (

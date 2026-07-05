@@ -21,9 +21,10 @@ interface WorkoutCardProps {
   workout: WorkoutPlan
   lastSessionDate: string | null
   onStart: () => void
+  isNext?: boolean
 }
 
-function WorkoutCard({ workout, lastSessionDate, onStart }: WorkoutCardProps) {
+function WorkoutCard({ workout, lastSessionDate, onStart, isNext }: WorkoutCardProps) {
   const exerciseCount = workout.workout_exercises?.[0]?.count ?? 0
   const difficulty = getDifficulty(exerciseCount)
   const daysSince = lastSessionDate != null ? getDaysSince(lastSessionDate) : null
@@ -35,7 +36,17 @@ function WorkoutCard({ workout, lastSessionDate, onStart }: WorkoutCardProps) {
     >
       <div className="flex items-start justify-between gap-2">
         <div>
-          <div className="font-semibold text-forge-text text-[0.95rem] leading-tight">{workout.name}</div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="font-semibold text-forge-text text-[0.95rem] leading-tight">{workout.name}</div>
+            {isNext && (
+              <span
+                className="text-[9px] font-bold px-1.5 py-0.5 rounded-full tracking-wider"
+                style={{ backgroundColor: GOLD + '25', color: GOLD, border: `1px solid ${GOLD}50` }}
+              >
+                URMĂTOR
+              </span>
+            )}
+          </div>
           <div className="text-forge-muted text-xs mt-0.5">{exerciseCount} exerciții</div>
         </div>
         <div className="text-forge-muted text-xs whitespace-nowrap pt-0.5">
@@ -78,6 +89,7 @@ interface WorkoutQuickStartProps {
   onStart: (workoutId: string) => void
   onViewAll: () => void
   onCreatePlan: () => void
+  nextPlanId?: string | null
 }
 
 export function WorkoutQuickStart({
@@ -86,9 +98,18 @@ export function WorkoutQuickStart({
   onStart,
   onViewAll,
   onCreatePlan,
+  nextPlanId,
 }: WorkoutQuickStartProps) {
   const [showAll, setShowAll] = useState(false)
-  const visible = showAll ? workouts : workouts.slice(0, 3)
+
+  const sorted = nextPlanId
+    ? [
+        ...workouts.filter(w => w.id === nextPlanId),
+        ...workouts.filter(w => w.id !== nextPlanId),
+      ]
+    : workouts
+
+  const visible = showAll ? sorted : sorted.slice(0, 3)
 
   return (
     <div>
@@ -110,14 +131,15 @@ export function WorkoutQuickStart({
               workout={w}
               lastSessionDate={lastSessionByWorkout[w.id] ?? null}
               onStart={() => onStart(w.id)}
+              isNext={nextPlanId ? w.id === nextPlanId : undefined}
             />
           ))}
-          {workouts.length > 3 && (
+          {sorted.length > 3 && (
             <button
               onClick={() => setShowAll(p => !p)}
               className="w-full text-center text-xs text-forge-muted hover:text-forge-text py-2 tracking-wide transition-colors"
             >
-              {showAll ? 'Arată mai puțin ↑' : `Vezi toate (${workouts.length}) →`}
+              {showAll ? 'Arată mai puțin ↑' : `Vezi toate (${sorted.length}) →`}
             </button>
           )}
         </div>

@@ -5,6 +5,7 @@ export type WeekDays = [DayType, DayType, DayType, DayType, DayType, DayType, Da
 export interface SplitConfig {
   days: WeekDays
   level: 'incepator' | 'intermediar' | 'avansat'
+  programName?: string
 }
 
 export const DAY_LABELS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']

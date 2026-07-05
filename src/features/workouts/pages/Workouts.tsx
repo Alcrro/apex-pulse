@@ -1,12 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import { Dumbbell, Settings } from 'lucide-react'
-import { useWorkouts } from '../hooks/useWorkouts'
+import { usePrograms, getNextPlan } from '../hooks/usePrograms'
 import { useSessions } from '../../session/hooks/useSessions'
 import { WorkoutQuickStart } from '../../dashboard/components/WorkoutQuickStart'
 
 export function WorkoutsPage() {
   const navigate = useNavigate()
-  const { workouts } = useWorkouts()
+  const { standaloneWorkouts, activeProgram, activePlan } = usePrograms()
   const { sessions } = useSessions()
 
   const lastSessionByWorkout: Record<string, string> = {}
@@ -15,6 +15,16 @@ export function WorkoutsPage() {
       lastSessionByWorkout[s.workout_plan_id] = s.started_at
     }
   }
+
+  const displayWorkouts = activeProgram
+    ? activeProgram.workout_plans
+    : activePlan
+      ? [activePlan]
+      : standaloneWorkouts
+
+  const nextPlanId = activeProgram
+    ? (getNextPlan(activeProgram, sessions)?.id ?? null)
+    : (activePlan?.id ?? null)
 
   return (
     <div className="space-y-3 pt-2">
@@ -33,11 +43,12 @@ export function WorkoutsPage() {
       </div>
 
       <WorkoutQuickStart
-        workouts={workouts}
+        workouts={displayWorkouts}
         lastSessionByWorkout={lastSessionByWorkout}
         onStart={id => navigate(`/sesiune/${id}`)}
         onViewAll={() => {}}
         onCreatePlan={() => navigate('/antrenamente/setari')}
+        nextPlanId={nextPlanId}
       />
     </div>
   )

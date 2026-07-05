@@ -44,9 +44,10 @@ export function useWorkouts() {
   }
 
   async function updateWorkout(id: string, updates: Partial<Pick<WorkoutPlan, 'name' | 'description'>>) {
+    const currentEditCount = workouts.find(w => w.id === id)?.edit_count ?? 0
     const { data, error } = await supabase
       .from('workout_plans')
-      .update(updates)
+      .update({ ...updates, edit_count: currentEditCount + 1 })
       .eq('id', id)
       .select()
       .single()
@@ -54,7 +55,16 @@ export function useWorkouts() {
     return { data: data as WorkoutPlan | null, error }
   }
 
-  return { workouts, loading, createWorkout, deleteWorkout, updateWorkout, refetch: fetchWorkouts }
+  async function incrementEditCount(id: string) {
+    const currentEditCount = workouts.find(w => w.id === id)?.edit_count ?? 0
+    await supabase
+      .from('workout_plans')
+      .update({ edit_count: currentEditCount + 1 })
+      .eq('id', id)
+    setWorkouts(prev => prev.map(w => w.id === id ? { ...w, edit_count: currentEditCount + 1 } : w))
+  }
+
+  return { workouts, loading, createWorkout, deleteWorkout, updateWorkout, incrementEditCount, refetch: fetchWorkouts }
 }
 
 export function useWorkoutDetail(workoutId: string | undefined) {
@@ -83,6 +93,13 @@ export function useWorkoutDetail(workoutId: string | undefined) {
     setLoading(false)
   }
 
+  async function bumpEditCount() {
+    if (!workoutId || !workout) return
+    const next = workout.edit_count + 1
+    await supabase.from('workout_plans').update({ edit_count: next }).eq('id', workoutId)
+    setWorkout(prev => prev ? { ...prev, edit_count: next } : prev)
+  }
+
   async function addExercise(exerciseId: string, sets: number, reps: number, restSeconds: number) {
     const nextOrder = exercises.length
     const { data, error } = await supabase
@@ -97,13 +114,19 @@ export function useWorkoutDetail(workoutId: string | undefined) {
       })
       .select('*, exercises(*)')
       .single()
-    if (!error) setExercises(prev => [...prev, data as WorkoutExercise])
+    if (!error) {
+      setExercises(prev => [...prev, data as WorkoutExercise])
+      bumpEditCount()
+    }
     return { data: data as WorkoutExercise | null, error }
   }
 
   async function removeExercise(weId: string) {
     const { error } = await supabase.from('workout_exercises').delete().eq('id', weId)
-    if (!error) setExercises(prev => prev.filter(e => e.id !== weId))
+    if (!error) {
+      setExercises(prev => prev.filter(e => e.id !== weId))
+      bumpEditCount()
+    }
     return { error }
   }
 
@@ -125,6 +148,7 @@ export function useWorkoutDetail(workoutId: string | undefined) {
         supabase.from('workout_exercises').update({ order_index: i }).eq('id', we.id)
       )
     )
+    bumpEditCount()
   }
 
   return { workout, exercises, loading, addExercise, removeExercise, updateExercise, reorderExercises, refetch: fetchWorkout }

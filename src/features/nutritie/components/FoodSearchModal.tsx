@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Search, Loader2, Plus, PlusCircle } from 'lucide-react'
+import { X, Search, Loader2, Plus, PlusCircle, Camera, ScanLine } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import type { FoodItem, MealType } from '../../../shared/types'
 import { useFoodSearch } from '../hooks/useFoodSearch'
 import { useFrequentFoods } from '../hooks/useFrequentFoods'
 import { useRecentFoods } from '../hooks/useRecentFoods'
 import { useFoodDetail } from '../hooks/useFoodDetail'
+import { useBarcodeLookup } from '../hooks/useBarcodeLookup'
 import { FoodSearchResult } from './FoodSearchResult'
 import { NutrientTable } from './NutrientTable'
 import { AminoAcidList } from './AminoAcidList'
+import { BarcodeScanner } from './BarcodeScanner'
 import { getMealLabel } from '../utils/nutritionHelpers'
 
 type DetailTab = 'macro' | 'micro' | 'aminoacizi'
@@ -20,7 +22,8 @@ const UNITS = [
   { value: 'pounds', label: 'pounds' },
 ]
 
-type Tab = 'search' | 'frequent' | 'recent'
+type Tab = 'search' | 'frequent' | 'recent' | 'scan'
+type ScanPhase = 'scanner' | 'loading' | 'notfound' | 'error'
 
 interface FoodSearchModalProps {
   mealType: MealType
@@ -36,13 +39,47 @@ export function FoodSearchModal({ mealType, onAdd, onClose }: FoodSearchModalPro
   const [quantity, setQuantity] = useState('100')
   const [unit, setUnit] = useState('grame')
   const [detailTab, setDetailTab] = useState<DetailTab>('macro')
+  const [scanPhase, setScanPhase] = useState<ScanPhase>('scanner')
   const inputRef = useRef<HTMLInputElement>(null)
   const { results, isLoading, isError, search, clearResults } = useFoodSearch()
   const { foods: frequentFoods, isLoading: freqLoading } = useFrequentFoods()
   const { foods: recentFoods, isLoading: recentLoading } = useRecentFoods()
   const { food: foodDetail, isLoading: detailLoading } = useFoodDetail(selected?.fdcId)
+  const { food: scannedFood, isLoading: barcodeLoading, isNotFound, error: barcodeError, lookup, reset: resetLookup } = useBarcodeLookup()
 
   useEffect(() => { inputRef.current?.focus() }, [])
+
+  // Barcode scan effects
+  useEffect(() => {
+    if (scannedFood) {
+      setSelected(scannedFood)
+      setScanPhase('scanner')
+      resetLookup()
+    }
+  }, [scannedFood]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (isNotFound) setScanPhase('notfound')
+    else if (barcodeError) setScanPhase('error')
+  }, [isNotFound, barcodeError])
+
+  function handleBarcodeDetected(barcode: string) {
+    setScanPhase('loading')
+    lookup(barcode)
+  }
+
+  function handleTabChange(newTab: Tab) {
+    if (newTab !== 'scan') {
+      setScanPhase('scanner')
+      resetLookup()
+    }
+    setTab(newTab)
+  }
+
+  function handleRescan() {
+    resetLookup()
+    setScanPhase('scanner')
+  }
 
   function handleQueryChange(val: string) {
     setQuery(val)
@@ -203,11 +240,11 @@ export function FoodSearchModal({ mealType, onAdd, onClose }: FoodSearchModalPro
           {/* tab bar */}
           <div className="flex border-b border-gray-800 shrink-0">
             {(['search', 'frequent', 'recent'] as Tab[]).map((t) => {
-              const labels: Record<Tab, string> = { search: 'Căutare', frequent: 'Frecvente', recent: 'Recent' }
+              const labels: Record<Tab, string> = { search: 'Căutare', frequent: 'Frecvente', recent: 'Recent', scan: 'Scanează' }
               return (
                 <button
                   key={t}
-                  onClick={() => setTab(t)}
+                  onClick={() => handleTabChange(t)}
                   className={`flex-1 py-3 text-xs font-semibold transition-colors border-b-2 ${
                     tab === t
                       ? 'border-orange-500 text-orange-500'
@@ -218,6 +255,17 @@ export function FoodSearchModal({ mealType, onAdd, onClose }: FoodSearchModalPro
                 </button>
               )
             })}
+            <button
+              onClick={() => handleTabChange('scan')}
+              className={`flex-1 py-3 text-xs font-semibold transition-colors border-b-2 flex items-center justify-center gap-1 ${
+                tab === 'scan'
+                  ? 'border-orange-500 text-orange-500'
+                  : 'border-transparent text-gray-500 hover:text-white'
+              }`}
+            >
+              <Camera size={13} />
+              Scanează
+            </button>
           </div>
 
           {/* search tab */}
@@ -319,6 +367,56 @@ export function FoodSearchModal({ mealType, onAdd, onClose }: FoodSearchModalPro
                 recentFoods.map((food) => (
                   <FoodSearchResult key={food.fdcId} food={food} onClick={handleSelect} />
                 ))
+              )}
+            </div>
+          )}
+
+          {/* scan tab */}
+          {tab === 'scan' && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {scanPhase === 'scanner' && (
+                <BarcodeScanner onDetected={handleBarcodeDetected} />
+              )}
+
+              {scanPhase === 'loading' && (
+                <div className="flex flex-col items-center justify-center py-16 gap-3">
+                  <div className="w-10 h-10 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-gray-400 text-sm">Se caută produsul...</p>
+                </div>
+              )}
+
+              {(scanPhase === 'notfound' || scanPhase === 'error') && (
+                <div className="flex flex-col items-center justify-center py-12 px-6 gap-4">
+                  <div className="w-16 h-16 rounded-2xl bg-gray-800 flex items-center justify-center">
+                    <ScanLine size={28} className="text-gray-500" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-white font-semibold text-sm">
+                      {scanPhase === 'error' ? barcodeError : 'Produsul nu a fost găsit'}
+                    </p>
+                    {scanPhase === 'notfound' && (
+                      <p className="text-gray-500 text-xs mt-1">
+                        Produsul nu există în baza de date Open Food Facts.
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2 w-full">
+                    <button
+                      onClick={handleRescan}
+                      className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-800 text-gray-300 text-sm font-semibold"
+                    >
+                      <Camera size={15} />
+                      Scanează din nou
+                    </button>
+                    <button
+                      onClick={() => navigate('/nutritie/aliment/custom/nou')}
+                      className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-semibold"
+                    >
+                      <PlusCircle size={15} />
+                      Adaugă manual
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           )}
