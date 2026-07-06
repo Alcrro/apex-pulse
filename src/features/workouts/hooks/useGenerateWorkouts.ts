@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import Anthropic from '@anthropic-ai/sdk'
 import { supabase } from '../../../shared/lib/supabase'
 import { DEFAULT_EXERCISES } from '../../../shared/lib/exercises'
 import type { SplitConfig, DayType } from '../utils/splitTypes'
@@ -61,12 +60,6 @@ export function useGenerateWorkouts() {
   const [error, setError] = useState<string | null>(null)
 
   async function generate(config: SplitConfig): Promise<boolean> {
-    const apiKey = import.meta.env.VITE_CLAUDE_API_KEY as string | undefined
-    if (!apiKey) {
-      setError('Adaugă VITE_CLAUDE_API_KEY în fișierul .env')
-      return false
-    }
-
     // unique non-rest workout types
     const uniqueTypes = [...new Set(config.days.filter(d => d !== 'rest'))] as DayType[]
     if (uniqueTypes.length === 0) {
@@ -122,22 +115,14 @@ Reguli:
 - Variază echipamentul (Bara, Gantere, Cablu, Masina)
 - Returnează STRICT JSON, fără text suplimentar`
 
-      const client = new Anthropic({
-        apiKey,
-        dangerouslyAllowBrowser: true,
+      const { data, error: fnError } = await supabase.functions.invoke('generate-workout', {
+        body: { prompt },
       })
 
-      const message = await client.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 2048,
-        messages: [{ role: 'user', content: prompt }],
-      })
+      if (fnError) throw new Error('Eroare la generare: ' + fnError.message)
+      if (!data?.plans) throw new Error('Răspuns invalid de la AI.')
 
-      const rawText = message.content[0].type === 'text' ? message.content[0].text : ''
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) throw new Error('Răspuns invalid de la AI.')
-
-      const parsed = JSON.parse(jsonMatch[0]) as { plans: GeneratedPlan[] }
+      const parsed = data as { plans: GeneratedPlan[] }
 
       // 2. get current user
       const { data: { user } } = await supabase.auth.getUser()
