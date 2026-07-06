@@ -23,6 +23,7 @@ export function AuthForm({ mode, form, loading, error, onChange, onSubmit }: Aut
           value={form.fullName}
           onChange={onChange}
           required
+          maxLength={100}
         />
       )}
       <Input
@@ -33,6 +34,7 @@ export function AuthForm({ mode, form, loading, error, onChange, onSubmit }: Aut
         value={form.email}
         onChange={onChange}
         required
+        maxLength={254}
       />
       <Input
         label="Parolă"
@@ -43,6 +45,7 @@ export function AuthForm({ mode, form, loading, error, onChange, onSubmit }: Aut
         onChange={onChange}
         required
         minLength={6}
+        maxLength={128}
       />
       {error && (
         <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-sm text-red-400">

@@ -20,7 +20,6 @@ dist-ssr/
 *.sw?
 
 # Documentation
-docs/
 
 # OS
 .DS_Store
