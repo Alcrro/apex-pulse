@@ -1,4 +1,4 @@
-import type { FoodItem, GoalType, MealType } from '../../../shared/types'
+import type { FoodItem, GoalType, MealType, NutritionPhase } from '../../../shared/types'
 
 export function getMealLabel(mealType: string): string {
   const num = mealType.replace('masa_', '')
@@ -133,4 +133,32 @@ export function displayDate(dateStr: string): string {
   if (dateStr === today) return 'Azi'
   if (dateStr === yesterday) return 'Ieri'
   return new Date(dateStr).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' })
+}
+
+export function getDayLabel(dateStr: string): string {
+  const today = formatDate(new Date())
+  const yesterday = addDays(today, -1)
+  if (dateStr === today) return 'Azi'
+  if (dateStr === yesterday) return 'Ieri'
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('ro-RO', {
+    weekday: 'long', day: 'numeric', month: 'short',
+  })
+}
+
+export interface NutritionNotification {
+  id: string
+  kind: 'warning' | 'info'
+  title: string
+  description: string
+}
+
+export function buildNotifications(phase: NutritionPhase, avgCalories: number | null): NutritionNotification[] {
+  const list: NutritionNotification[] = []
+  if (phase === 'discovery') {
+    list.push({ id: 'no-goal', kind: 'warning', title: 'Obiectiv caloric nesetat', description: 'Setează un obiectiv pentru a urmări caloriile și macronutrienții.' })
+  }
+  if (avgCalories === null) {
+    list.push({ id: 'no-tdee', kind: 'info', title: 'TDEE neestimat', description: 'Loghează alimente câteva zile pentru a-ți estima metabolismul de bază.' })
+  }
+  return list
 }
