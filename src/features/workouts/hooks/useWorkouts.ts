@@ -143,11 +143,9 @@ export function useWorkoutDetail(workoutId: string | undefined) {
 
   async function reorderExercises(reordered: WorkoutExercise[]) {
     setExercises(reordered)
-    await Promise.all(
-      reordered.map((we, i) =>
-        supabase.from('workout_exercises').update({ order_index: i }).eq('id', we.id)
-      )
-    )
+    await supabase
+      .from('workout_exercises')
+      .upsert(reordered.map((we, i) => ({ id: we.id, order_index: i })))
     bumpEditCount()
   }
 
