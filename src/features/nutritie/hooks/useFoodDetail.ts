@@ -3,7 +3,7 @@ import { supabase } from '../../../shared/lib/supabase'
 import type { FoodItem } from '../../../shared/types'
 import { parseFoodCacheRow } from '../utils/nutritionHelpers'
 
-const USDA_API_KEY = (import.meta as any).env?.VITE_USDA_API_KEY || 'DEMO_KEY'
+const USDA_API_KEY = import.meta.env.VITE_USDA_API_KEY || 'DEMO_KEY'
 
 export interface FoodDetail extends FoodItem {
   vitamins?: Record<string, number>

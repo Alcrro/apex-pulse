@@ -17,7 +17,7 @@ export function BarcodeScanner({ onDetected }: BarcodeScannerProps) {
   useEffect(() => {
     startScan()
     return () => stopScan()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps — pornire/oprire camera doar la mount/unmount
 
   useEffect(() => {
     if (detectedBarcode) onDetectedRef.current(detectedBarcode)

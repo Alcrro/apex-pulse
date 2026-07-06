@@ -128,7 +128,7 @@ export function useBarcodeScan(): UseBarcodeScanResult {
       setState('error')
       setError(msg)
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps — inițializare scanner o singură dată la mount
 
   const toggleTorch = useCallback(async () => {
     const track = streamRef.current?.getVideoTracks()[0]

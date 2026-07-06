@@ -14,7 +14,7 @@ export function FoodEntryRow({ entry, onRemove, onEdit }: FoodEntryRowProps) {
     <div className="flex items-center gap-3 py-2">
       <div className="w-9 h-9 rounded-xl bg-gray-700 flex items-center justify-center shrink-0 overflow-hidden">
         {entry.food?.imageUrl ? (
-          <img src={entry.food.imageUrl} alt={name} className="w-full h-full object-cover" />
+          <img src={entry.food.imageUrl} alt={name} loading="lazy" className="w-full h-full object-cover" />
         ) : (
           <Salad size={16} className="text-gray-500" />
         )}

@@ -17,7 +17,7 @@ export function FoodSearchResult({ food, onClick }: FoodSearchResultProps) {
     >
       <div className="w-11 h-11 rounded-xl bg-gray-800 flex items-center justify-center shrink-0 overflow-hidden">
         {food.imageUrl ? (
-          <img src={food.imageUrl} alt={name} className="w-full h-full object-cover" />
+          <img src={food.imageUrl} alt={name} loading="lazy" className="w-full h-full object-cover" />
         ) : (
           <Salad size={18} className="text-gray-500" />
         )}

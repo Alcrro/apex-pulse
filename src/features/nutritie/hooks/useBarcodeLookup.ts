@@ -56,7 +56,7 @@ export function useBarcodeLookup() {
       // 1. Check food_cache first
       const { data: cached } = await supabase
         .from('food_cache')
-        .select('*')
+        .select('fdc_id, name, name_ro, brand, image_url, calories_per_g, protein_g, carbs_g, fat_g, sugar_g, fiber_g, sodium_mg')
         .eq('barcode', barcode)
         .maybeSingle()
 

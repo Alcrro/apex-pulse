@@ -3,7 +3,7 @@ import { supabase } from '../../../shared/lib/supabase'
 import type { FoodItem } from '../../../shared/types'
 import { parseUsdaFood, toFoodCacheRow, parseFoodCacheRow } from '../utils/nutritionHelpers'
 
-const USDA_API_KEY = (import.meta as any).env?.VITE_USDA_API_KEY || 'DEMO_KEY'
+const USDA_API_KEY = import.meta.env.VITE_USDA_API_KEY || 'DEMO_KEY'
 const USDA_SEARCH = 'https://api.nal.usda.gov/fdc/v1/foods/search'
 
 // Dicționar simplu RO → EN pentru termeni comuni
@@ -40,7 +40,7 @@ export function useFoodSearch() {
     try {
       const { data } = await supabase
         .from('food_cache')
-        .select('*')
+        .select('fdc_id, name, name_ro, brand, image_url, calories_per_g, protein_g, carbs_g, fat_g, sugar_g, fiber_g, sodium_mg')
         .or(`name.ilike.%${query}%,name_ro.ilike.%${query}%`)
         .limit(20)
       return (data ?? []).map(parseFoodCacheRow)
