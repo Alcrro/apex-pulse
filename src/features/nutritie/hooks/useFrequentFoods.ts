@@ -20,7 +20,7 @@ export function useFrequentFoods() {
       .limit(5)
       .then(({ data }) => {
         const items = (data ?? [])
-          .map((row: any) => row.food_cache ? parseFoodCacheRow(row.food_cache) : null)
+          .map((row) => row.food_cache ? parseFoodCacheRow(row.food_cache) : null)
           .filter(Boolean) as FoodItem[]
         setFoods(items)
       })

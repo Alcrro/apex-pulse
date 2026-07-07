@@ -1,4 +1,15 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
+import type { IScannerControls } from '@zxing/browser'
+import {
+  CAMERA_CONSTRAINTS,
+  BARCODE_FORMATS,
+  DETECTION_COOLDOWN_MS,
+  getCameraErrorMessage,
+  checkTorchCapability,
+  runNativeBarcodeDetectorLoop,
+  startZxingReader,
+} from '../utils/barcodeScanner'
+import type { BarcodeDetectorInstance } from '../utils/barcodeScanner'
 
 export type BarcodeScanState = 'idle' | 'requesting' | 'scanning' | 'detected' | 'error'
 
@@ -15,11 +26,15 @@ export interface UseBarcodeScanResult {
   toggleTorch: () => void
 }
 
+interface TorchTrack {
+  applyConstraints(constraints: { advanced: [{ torch: boolean }] }): Promise<void>
+}
+
 export function useBarcodeScan(): UseBarcodeScanResult {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
-  const detectorRef = useRef<any>(null)
-  const zxingControlsRef = useRef<any>(null)
+  const detectorRef = useRef<BarcodeDetectorInstance | null>(null)
+  const zxingControlsRef = useRef<IScannerControls | null>(null)
   const isRunningRef = useRef(false)
   const cooldownRef = useRef(false)
 
@@ -42,7 +57,7 @@ export function useBarcodeScan(): UseBarcodeScanResult {
         cooldownRef.current = false
         setState('scanning')
       }
-    }, 1500)
+    }, DETECTION_COOLDOWN_MS)
   }
 
   const stopScan = useCallback(() => {
@@ -67,17 +82,10 @@ export function useBarcodeScan(): UseBarcodeScanResult {
     cooldownRef.current = false
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-      })
+      const stream = await navigator.mediaDevices.getUserMedia(CAMERA_CONSTRAINTS)
       streamRef.current = stream
 
-      // Torch capability check
-      try {
-        const track = stream.getVideoTracks()[0]
-        const caps = (track?.getCapabilities as any)?.()
-        if (caps?.torch) setIsTorchAvailable(true)
-      } catch { /* torch not available */ }
+      if (checkTorchCapability(stream)) setIsTorchAvailable(true)
 
       isRunningRef.current = true
       setState('scanning')
@@ -88,53 +96,24 @@ export function useBarcodeScan(): UseBarcodeScanResult {
           video.srcObject = stream
           await video.play()
         }
-        detectorRef.current = new (window as any).BarcodeDetector({
-          formats: ['ean_13', 'upc_a', 'upc_e'],
-        })
-        const loop = async () => {
-          if (!isRunningRef.current) return
-          const vid = videoRef.current
-          const det = detectorRef.current
-          if (vid && det && vid.readyState >= 2) {
-            try {
-              const barcodes = await det.detect(vid)
-              if (barcodes.length > 0 && barcodes[0].rawValue) {
-                triggerDetection(barcodes[0].rawValue as string)
-                // cooldown: next loop scheduled by triggerDetection timeout
-                return
-              }
-            } catch { /* frame decode error, continue */ }
-          }
-          requestAnimationFrame(loop)
-        }
-        requestAnimationFrame(loop)
+        detectorRef.current = new window.BarcodeDetector!({ formats: BARCODE_FORMATS })
+        runNativeBarcodeDetectorLoop(videoRef, detectorRef, isRunningRef, triggerDetection)
       } else {
-        // Lazy-load ZXing fallback for Safari
-        const { BrowserMultiFormatReader } = await import('@zxing/browser')
-        const reader = new BrowserMultiFormatReader()
-        const vid = videoRef.current
-        const controls = await reader.decodeFromStream(stream, vid!, (result) => {
-          if (result && isRunningRef.current) {
-            triggerDetection(result.getText())
-          }
-        })
+        const vid = videoRef.current!
+        const controls = await startZxingReader(stream, vid, isRunningRef, triggerDetection)
         zxingControlsRef.current = controls
       }
-    } catch (err: any) {
-      const msg =
-        err?.name === 'NotAllowedError'
-          ? 'Permisiune cameră refuzată. Activează accesul în setările browserului.'
-          : 'Nu se poate accesa camera.'
+    } catch (err: unknown) {
       setState('error')
-      setError(msg)
+      setError(getCameraErrorMessage(err))
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps — inițializare scanner o singură dată la mount
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleTorch = useCallback(async () => {
     const track = streamRef.current?.getVideoTracks()[0]
     if (!track) return
     try {
-      await (track as any).applyConstraints({ advanced: [{ torch: !torchOn }] })
+      await (track as unknown as TorchTrack).applyConstraints({ advanced: [{ torch: !torchOn }] })
       setTorchOn(v => !v)
     } catch { /* torch toggle not supported */ }
   }, [torchOn])

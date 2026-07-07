@@ -4,7 +4,7 @@ import { useNutritionTarget } from '../hooks/useNutritionTarget'
 export function TDEEWarning() {
   const { goals } = useNutritionTarget()
 
-  if (!(goals as any)?.tdeeWarning) return null
+  if (!goals?.tdeeWarning) return null
 
   return (
     <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 flex items-start gap-3">

@@ -33,7 +33,7 @@ export function useMealCopyDays(mealType: MealType) {
       .then(({ data }) => {
         const countByDate = new Map<string, number>()
         for (const row of data ?? []) {
-          const logDate = (row.nutrition_logs as any)?.log_date
+          const logDate = (row.nutrition_logs as { log_date?: string } | null)?.log_date
           if (!logDate) continue
           countByDate.set(logDate, (countByDate.get(logDate) ?? 0) + 1)
         }

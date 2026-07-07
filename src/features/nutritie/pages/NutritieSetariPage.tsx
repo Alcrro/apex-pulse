@@ -26,7 +26,7 @@ export function NutritieSetariPage() {
 			setManualCalories,
 			setCustomMacroSplit,
 		});
-	}, [goals, avgCalories, loading]); // eslint-disable-line react-hooks/exhaustive-deps — Supabase fns sunt stabile
+	}, [goals, avgCalories, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return (
 		<div className="pb-8">

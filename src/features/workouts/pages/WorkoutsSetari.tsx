@@ -9,6 +9,7 @@ import { WorkoutStatsCard } from '../components/WorkoutStatsCard'
 import { ProgramCard } from '../components/ProgramCard'
 import { CreateWorkoutModal } from '../components/CreateWorkoutModal'
 import { SplitConfigurator } from '../components/SplitConfigurator'
+import { ManualConfigurator } from '../components/ManualConfigurator'
 import { useWorkouts } from '../hooks/useWorkouts'
 
 const GOLD = '#D4B96A'
@@ -70,6 +71,7 @@ export function WorkoutsSetariPage() {
 
       <WorkoutStatsCard stats={stats} loading={statsLoading} />
 
+      <ManualConfigurator onCreated={refetch} />
       <SplitConfigurator onGenerated={refetch} />
 
       {programs.length > 0 && (

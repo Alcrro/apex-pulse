@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../../shared/lib/supabase'
 import { useAuth } from '../../../shared/context/AuthContext'
 import { estimateCaloriesBurned } from '../../../shared/lib/caloriesBurned'
-import type { SessionSummary } from '../../../shared/lib/caloriesBurned'
-
-const DEFAULT_BODY_WEIGHT_KG = 70
+import { DEFAULT_BODY_WEIGHT_KG, getSessionPlanName, buildSessionSummary } from '../utils/workoutCalories'
 
 interface WorkoutSession {
   id: string
@@ -35,48 +33,17 @@ export function useWorkoutCalories(date: string) {
           return
         }
 
-        const summaries: SessionSummary[] = []
-        const result: WorkoutSession[] = []
-
-        for (const s of data) {
-          const start = new Date(s.started_at).getTime()
-          const end = s.finished_at ? new Date(s.finished_at).getTime() : start + 60 * 60 * 1000
-          const durationMinutes = Math.max((end - start) / 60000, 1)
-
-          const logs: any[] = s.session_logs ?? []
-          const totalVolume = logs.reduce((sum: number, log: any) => {
-            const w = Number(log.weight) || 0
-            const r = Number(log.reps) || 0
-            return sum + w * r
-          }, 0)
-
-          summaries.push({ durationMinutes, totalVolume })
-
-          const planName = Array.isArray(s.workout_plans)
-            ? (s.workout_plans[0] as any)?.name
-            : (s.workout_plans as any)?.name
-
-          result.push({
-            id: s.id,
-            name: planName || 'Antrenament',
-            estimatedCalories: 0,
-          })
-        }
-
         let total = 0
-        for (let i = 0; i < summaries.length; i++) {
-          const kcal = Math.round(estimateCaloriesBurned([summaries[i]], DEFAULT_BODY_WEIGHT_KG))
-          result[i].estimatedCalories = kcal
+        const result: WorkoutSession[] = data.map(s => {
+          const kcal = Math.round(estimateCaloriesBurned([buildSessionSummary(s)], DEFAULT_BODY_WEIGHT_KG))
           total += kcal
-        }
+          return { id: s.id, name: getSessionPlanName(s), estimatedCalories: kcal }
+        })
 
         setSessions(result)
         setTotalBurned(total)
       })
-      .catch(() => {
-        setSessions([])
-        setTotalBurned(0)
-      })
+      .catch(() => { setSessions([]); setTotalBurned(0) })
       .finally(() => setIsLoading(false))
   }, [user, date])
 

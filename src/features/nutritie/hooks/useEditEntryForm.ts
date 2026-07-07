@@ -1,19 +1,7 @@
 import { useState } from 'react'
 import type { MealEntry, FoodItem } from '../../../shared/types'
-
-function entryToFood(entry: MealEntry): FoodItem {
-  const g = entry.gramsEquivalent > 0 ? entry.gramsEquivalent : 100
-  return {
-    fdcId:        entry.fdcId,
-    name:         entry.food?.name ?? entry.fdcId,
-    nameRo:       entry.food?.nameRo,
-    imageUrl:     entry.food?.imageUrl,
-    caloriesPerG: entry.calories / g,
-    proteinG:     entry.proteinG / g,
-    carbsG:       entry.carbsG   / g,
-    fatG:         entry.fatG     / g,
-  }
-}
+import { toGrams, calcNutrients } from '../utils/nutritionHelpers'
+import { entryToFood } from '../utils/editEntryForm'
 
 export function useEditEntryForm(
   entry: MealEntry,
@@ -24,11 +12,8 @@ export function useEditEntryForm(
   const [quantity, setQuantity] = useState(String(entry.quantity))
   const [unit, setUnit]         = useState(entry.unit)
 
-  const previewGrams   = unit === 'pounds' ? (parseFloat(quantity) || 0) * 453.59 : parseFloat(quantity) || 0
-  const previewKcal    = Math.round(food.caloriesPerG * previewGrams)
-  const previewProtein = Math.round(food.proteinG * previewGrams * 10) / 10
-  const previewCarbs   = Math.round(food.carbsG   * previewGrams * 10) / 10
-  const previewFat     = Math.round(food.fatG     * previewGrams * 10) / 10
+  const previewGrams = toGrams(parseFloat(quantity) || 0, unit)
+  const { calories: previewKcal, proteinG: previewProtein, carbsG: previewCarbs, fatG: previewFat } = calcNutrients(food, previewGrams)
 
   function handleSave() {
     const qty = parseFloat(quantity)

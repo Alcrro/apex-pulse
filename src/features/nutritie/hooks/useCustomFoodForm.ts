@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCustomFood } from './useCustomFood'
+import {
+  parseCustomFoodFields,
+  validateCustomFoodForm,
+  buildCustomFoodPayload,
+} from '../utils/customFoodForm'
 
 export function useCustomFoodForm() {
   const navigate = useNavigate()
@@ -16,31 +21,14 @@ export function useCustomFoodForm() {
   const [nameRo, setNameRo]     = useState('')
   const [error, setError]       = useState<string | null>(null)
 
-  const calNum  = parseFloat(calories) || 0
-  const protNum = parseFloat(protein)  || 0
-  const carbNum = parseFloat(carbs)    || 0
-  const fatNum  = parseFloat(fat)      || 0
-
-  const isValid =
-    name.trim().length > 0 &&
-    calNum > 0 &&
-    protNum >= 0 &&
-    carbNum >= 0 &&
-    fatNum >= 0
+  const fields = { name, nameRo, calories, protein, carbs, fat, fiber, sodium }
+  const { calNum, protNum, carbNum, fatNum } = parseCustomFoodFields(fields)
+  const isValid = validateCustomFoodForm(name, calNum, protNum, carbNum, fatNum)
 
   async function handleSubmit() {
     if (!isValid) return
     setError(null)
-    const result = await createCustomFood({
-      name:        name.trim(),
-      nameRo:      nameRo.trim() || undefined,
-      caloriesPerG: calNum  / 100,
-      proteinG:    protNum / 100,
-      carbsG:      carbNum / 100,
-      fatG:        fatNum  / 100,
-      fiberG:      fiber  ? parseFloat(fiber)  / 100 : undefined,
-      sodiumMg:    sodium ? parseFloat(sodium) / 100 : undefined,
-    })
+    const result = await createCustomFood(buildCustomFoodPayload(fields, calNum, protNum, carbNum, fatNum))
     if (result) navigate(-1)
     else setError('Nu s-a putut salva alimentul. Încearcă din nou.')
   }

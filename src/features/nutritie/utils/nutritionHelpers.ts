@@ -1,5 +1,35 @@
 import type { FoodItem, GoalType, MealType, NutritionPhase } from '../../../shared/types'
 
+export interface UsdaNutrient {
+  nutrientId?: number
+  nutrientNumber?: string | number
+  nutrientName?: string
+  value?: number
+}
+
+interface UsdaFoodItem {
+  fdcId?: number | string
+  description?: string
+  brandOwner?: string
+  brandName?: string
+  foodNutrients?: UsdaNutrient[]
+}
+
+export interface FoodCacheRow {
+  fdc_id: string
+  name: string
+  name_ro?: string | null
+  brand?: string | null
+  image_url?: string | null
+  calories_per_g: number | string
+  protein_g: number | string
+  carbs_g: number | string
+  fat_g: number | string
+  sugar_g?: number | string | null
+  fiber_g?: number | string | null
+  sodium_mg?: number | string | null
+}
+
 export function getMealLabel(mealType: string): string {
   const num = mealType.replace('masa_', '')
   return `Masa ${num}`
@@ -37,12 +67,12 @@ export function computeMacroTargets(targetKcal: number, split: { protein: number
   }
 }
 
-export function parseUsdaFood(food: any): FoodItem {
+export function parseUsdaFood(food: UsdaFoodItem): FoodItem {
   const getNutrientById = (id: number) =>
-    food.foodNutrients?.find((n: any) => n.nutrientId === id || n.nutrientNumber === String(id))?.value ?? 0
+    food.foodNutrients?.find(n => n.nutrientId === id || n.nutrientNumber === String(id))?.value ?? 0
 
   const getNutrientByName = (name: string) =>
-    food.foodNutrients?.find((n: any) =>
+    food.foodNutrients?.find(n =>
       n.nutrientName?.toLowerCase().includes(name.toLowerCase())
     )?.value ?? 0
 
@@ -86,7 +116,7 @@ export function toFoodCacheRow(item: FoodItem) {
   }
 }
 
-export function parseFoodCacheRow(row: any): FoodItem {
+export function parseFoodCacheRow(row: FoodCacheRow): FoodItem {
   return {
     fdcId: row.fdc_id,
     name: row.name,

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import type { FoodItem } from '../../../shared/types'
 import {
   computeMacroTargets,
   formatDate,
@@ -64,13 +65,13 @@ describe('computeMacroTargets', () => {
 
 describe('calcNutrients', () => {
   it('scales calories by grams', () => {
-    const food = { caloriesPerG: 2, proteinG: 0.2, carbsG: 0.3, fatG: 0.1, fdcId: '1', name: 'test' } as any
+    const food = { caloriesPerG: 2, proteinG: 0.2, carbsG: 0.3, fatG: 0.1, fdcId: '1', name: 'test' } as FoodItem
     const result = calcNutrients(food, 100)
     expect(result.calories).toBe(200)
   })
 
   it('rounds protein to 1 decimal', () => {
-    const food = { caloriesPerG: 1, proteinG: 0.215, carbsG: 0, fatG: 0, fdcId: '1', name: 'test' } as any
+    const food = { caloriesPerG: 1, proteinG: 0.215, carbsG: 0, fatG: 0, fdcId: '1', name: 'test' } as FoodItem
     const result = calcNutrients(food, 100)
     expect(result.proteinG).toBe(21.5)
   })

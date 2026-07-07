@@ -135,6 +135,7 @@ export interface NutritionGoals {
   targetProteinPct: number
   targetCarbsPct: number
   targetFatPct: number
+  tdeeWarning?: boolean
 }
 
 // ─── Subscripții Stripe ───────────────────────────────────────────────────────
